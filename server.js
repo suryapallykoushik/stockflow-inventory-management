@@ -33,6 +33,7 @@ app.use(express.static(path.join(__dirname, "public")));
 // Authentication routes
 app.use("/api/auth", require("./src/routes/auth"));
 
+app.use("/api/products", require("./src/routes/products"));
 // Database health check
 app.get("/api/health", async (req, res) => {
   try {
