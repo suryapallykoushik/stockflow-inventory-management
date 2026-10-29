@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockFlow - Inventory Management</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #172554;
+    }
+    header {
+      background: #172554;
+      color: white;
+      padding: 24px 8%;
+    }
+    header h1 { margin: 0; font-size: 30px; }
+    header p { margin-bottom: 0; color: #cbd5e1; }
+    main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .card {
+      background: white;
+      padding: 28px;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px #0000000d;
+    }
+    .status {
+      color: #166534;
+      background: #dcfce7;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .feature { background: #f1f5f9; padding: 18px; border-radius: 8px; }
+    .feature h3 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>StockFlow</h1>
+    <p>Inventory management made simple</p>
+  </header>
+  <main>
+    <section class="card">
+      <span class="status">Application Setup</span>
+      <h2>Welcome to StockFlow!</h2>
+      <p>Your inventory management application is being built.</p>
+      <p>Manage products, track stock, and monitor inventory from one place.</p>
+    </section>
+    <section class="card">
+      <h2>Features</h2>
+      <div class="features">
+        <div class="feature">
+          <h3>User Accounts</h3>
+          <p>Secure registration and login.</p>
+        </div>
+        <div class="feature">
+          <h3>Products</h3>
+          <p>Manage product names, SKUs, prices, and quantities.</p>
+        </div>
+        <div class="feature">
+          <h3>Dashboard</h3>
+          <p>Track inventory totals and low-stock products.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
