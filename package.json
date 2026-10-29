@@ -1,0 +1,32 @@
+{
+  "name": "stockflow-inventory-management",
+  "version": "1.0.0",
+  "description": "StockFlow SaaS Inventory Management System - Software Developer Intern Assessment",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suryapallykoushik/stockflow-inventory-management.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/suryapallykoushik/stockflow-inventory-management/issues"
+  },
+  "homepage": "https://github.com/suryapallykoushik/stockflow-inventory-management#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.24.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
