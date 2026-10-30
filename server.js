@@ -37,6 +37,13 @@ app.use("/api/products", require("./src/routes/products"));
 
 app.use("/api/dashboard", require("./src/routes/dashboard"));
 
+app.use("/api/settings", require("./src/routes/settings"));
+
+
+
+
+
+
 
 // Database health check
 app.get("/api/health", async (req, res) => {
