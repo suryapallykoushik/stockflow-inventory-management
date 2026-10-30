@@ -25,6 +25,8 @@ async function showDashboard() {
     document.getElementById("dashboard").classList.remove("hidden");
 
     await loadDashboard();
+
+    await loadProducts();
 }
 
 // Load dashboard information
@@ -195,3 +197,170 @@ async function checkSession() {
 }
 
 checkSession();
+
+
+// Product Management
+
+const productForm = document.getElementById("productForm");
+const productMessage = document.getElementById("productMessage");
+
+async function loadProducts() {
+    const productList = document.getElementById("productList");
+    productList.textContent = "Loading products...";
+
+    try {
+        const response = await fetch("/api/products", {
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to load products");
+        }
+
+        const products = Array.isArray(data) ? data : data.products || [];
+
+        productList.innerHTML = "";
+
+        if (products.length === 0) {
+            productList.textContent = "No products added yet.";
+            return;
+        }
+
+        products.forEach(product => {
+            const item = document.createElement("div");
+            item.className = "product-item";
+
+            const details = document.createElement("p");
+            details.textContent =
+                `${product.name} | SKU: ${product.sku} | Quantity: ${product.quantity} | Cost: ${product.cost_price} | Selling: ${product.selling_price}`;
+
+            const editButton = document.createElement("button");
+            editButton.textContent = "Edit";
+            editButton.type = "button";
+            editButton.addEventListener("click", () => editProduct(product));
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.type = "button";
+            deleteButton.addEventListener("click", () => deleteProduct(product.id));
+
+            item.append(details, editButton, deleteButton);
+            productList.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error("Products error:", error);
+        productList.textContent = "Unable to load products.";
+    }
+}
+
+// Add or update product
+productForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const productId = document.getElementById("productId").value;
+
+    const product = {
+        name: document.getElementById("productName").value,
+        sku: document.getElementById("productSku").value,
+        quantity: Number(document.getElementById("productQuantity").value),
+        cost_price: Number(document.getElementById("productCost").value),
+        selling_price: Number(document.getElementById("productSelling").value),
+        description: document.getElementById("productDescription").value
+    };
+
+    const url = productId
+        ? `/api/products/${productId}`
+        : "/api/products";
+
+    try {
+        const response = await fetch(url, {
+            method: productId ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(product)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to save product");
+        }
+
+        productMessage.textContent = productId
+            ? "Product updated successfully."
+            : "Product added successfully.";
+
+        productMessage.style.color = "green";
+
+        resetProductForm();
+        await loadProducts();
+        await loadDashboard();
+
+    } catch (error) {
+        productMessage.textContent = error.message;
+        productMessage.style.color = "red";
+    }
+});
+
+// Edit product
+function editProduct(product) {
+    document.getElementById("productId").value = product.id;
+    document.getElementById("productName").value = product.name;
+    document.getElementById("productSku").value = product.sku;
+    document.getElementById("productQuantity").value = product.quantity;
+    document.getElementById("productCost").value = product.cost_price;
+    document.getElementById("productSelling").value = product.selling_price;
+    document.getElementById("productDescription").value = product.description || "";
+
+    document.getElementById("productSubmitBtn").textContent = "Update Product";
+    document.getElementById("cancelEditBtn").classList.remove("hidden");
+
+    productMessage.textContent = "Editing product...";
+    productMessage.style.color = "#2563eb";
+
+    productForm.scrollIntoView({ behavior: "smooth" });
+}
+
+// Reset form
+function resetProductForm() {
+    productForm.reset();
+    document.getElementById("productId").value = "";
+    document.getElementById("productSubmitBtn").textContent = "Add Product";
+    document.getElementById("cancelEditBtn").classList.add("hidden");
+}
+
+// Cancel edit
+document.getElementById("cancelEditBtn").addEventListener("click", resetProductForm);
+
+// Delete product
+async function deleteProduct(id) {
+    if (!confirm("Are you sure you want to delete this product?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/products/${id}`, {
+            method: "DELETE",
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to delete product");
+        }
+
+        productMessage.textContent = "Product deleted successfully.";
+        productMessage.style.color = "green";
+
+        await loadProducts();
+        await loadDashboard();
+
+    } catch (error) {
+        productMessage.textContent = error.message;
+        productMessage.style.color = "red";
+    }
+}

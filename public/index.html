@@ -89,7 +89,44 @@
                 <p id="lowStockCount">0</p>
             </div>
         </section>
+<section class="dashboard-section">
+    <h2>Product Management</h2>
 
+    <form id="productForm">
+        <input type="hidden" id="productId">
+
+        <input type="text" id="productName"
+            placeholder="Product Name" required>
+
+        <input type="text" id="productSku"
+            placeholder="SKU" required>
+
+        <input type="number" id="productQuantity"
+            placeholder="Quantity" min="0" required>
+
+        <input type="number" id="productCost"
+            placeholder="Cost Price" min="0" step="0.01" required>
+
+        <input type="number" id="productSelling"
+            placeholder="Selling Price" min="0" step="0.01" required>
+
+        <textarea id="productDescription"
+            placeholder="Product Description"></textarea>
+
+        <button type="submit" id="productSubmitBtn">
+            Add Product
+        </button>
+
+        <button type="button" id="cancelEditBtn" class="hidden">
+            Cancel Edit
+        </button>
+    </form>
+
+    <p id="productMessage"></p>
+
+    <h3>All Products</h3>
+    <div id="productList">Loading products...</div>
+</section>
         <section class="dashboard-section">
             <h2>Low Stock Products</h2>
             <div id="lowStockList">
