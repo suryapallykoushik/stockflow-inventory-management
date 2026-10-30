@@ -34,6 +34,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/auth", require("./src/routes/auth"));
 
 app.use("/api/products", require("./src/routes/products"));
+
+app.use("/api/dashboard", require("./src/routes/dashboard"));
+
+
 // Database health check
 app.get("/api/health", async (req, res) => {
   try {
