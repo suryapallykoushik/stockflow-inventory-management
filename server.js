@@ -7,6 +7,7 @@ const session = require("express-session");
 const db = require("./src/config/db");
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Parse incoming request data
 app.use(express.json());
@@ -71,6 +72,6 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`StockFlow running at http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`StockFlow running on port ${PORT}`);
 });
