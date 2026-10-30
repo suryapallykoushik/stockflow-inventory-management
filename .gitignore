@@ -1,3 +1,5 @@
-
 node_modules/
 .env
+.env.backup
+certs/
+stockflow_backup.sql
