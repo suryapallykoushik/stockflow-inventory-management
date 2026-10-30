@@ -1,7 +1,7 @@
 
 /* ========================================
-   STOCKFLOW - PROFESSIONAL SAAS DESIGN
-   Light theme | Navy + Blue
+   STOCKFLOW - INVENTORY MANAGEMENT
+   Professional SaaS Design
 ======================================== */
 
 :root {
@@ -28,15 +28,14 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 25px;
 }
 
 body {
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Arial, sans-serif;
+    min-height: 100vh;
+    font-family: Inter, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Arial, sans-serif;
     background: var(--background);
     color: var(--text);
-    min-height: 100vh;
     font-size: 14px;
 }
 
@@ -58,7 +57,7 @@ button {
    AUTHENTICATION
 ======================================== */
 
-.auth-page {
+.auth-section {
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -73,91 +72,78 @@ button {
 .auth-card {
     width: 100%;
     max-width: 440px;
-    background: var(--surface);
     padding: 38px;
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 18px;
     box-shadow: 0 18px 60px rgba(20, 36, 65, 0.09);
 }
 
-.auth-brand {
+.brand {
     text-align: center;
-    margin-bottom: 30px;
-}
-
-.brand-mark {
-    width: 43px;
-    height: 43px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--blue);
-    color: white;
-    border-radius: 12px;
-    font-size: 24px;
-    font-weight: 800;
-}
-
-.auth-brand .brand-mark {
-    margin: 0 auto 13px;
-}
-
-.auth-brand h1 {
-    font-size: 28px;
-    letter-spacing: -1px;
-    color: var(--navy);
-}
-
-.auth-brand p {
-    color: var(--muted);
-    margin-top: 7px;
-}
-
-.tabs {
-    display: flex;
-    gap: 8px;
-    padding: 5px;
-    background: #f2f5fa;
-    border-radius: 10px;
     margin-bottom: 28px;
 }
 
-.tabs button {
+.brand h1 {
+    color: var(--navy);
+    font-size: 31px;
+    font-weight: 800;
+    letter-spacing: -1.2px;
+}
+
+.brand h1 span,
+.sidebar-brand h2 span {
+    color: var(--blue);
+}
+
+.brand p {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 5px;
+    margin-bottom: 27px;
+    background: #f2f5fa;
+    border-radius: 10px;
+}
+
+.auth-tab {
     width: 50%;
     padding: 11px;
     border: 0;
     border-radius: 7px;
-    color: var(--muted);
     background: transparent;
-    font-weight: 600;
+    color: var(--muted);
+    font-weight: 650;
 }
 
-.tabs button.active {
+.auth-tab.active {
     background: white;
     color: var(--blue);
     box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
 }
 
 .auth-card form h2 {
-    font-size: 21px;
     margin-bottom: 7px;
+    color: var(--navy);
+    font-size: 21px;
 }
 
-.form-intro {
+.form-subtitle {
+    margin-bottom: 22px;
     color: var(--muted);
-    margin-bottom: 23px;
+    line-height: 1.5;
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-}
-
-.form-group label {
-    font-size: 13px;
+.auth-card form label {
+    display: block;
+    margin: 15px 0 7px;
     color: #35425a;
+    font-size: 13px;
     font-weight: 650;
 }
 
@@ -167,9 +153,9 @@ textarea {
     padding: 12px 14px;
     border: 1px solid #dce2ec;
     border-radius: 8px;
+    outline: none;
     background: white;
     color: var(--text);
-    outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -189,25 +175,19 @@ textarea {
     resize: vertical;
 }
 
-.form-group small {
-    color: var(--muted);
-    font-size: 11px;
-    line-height: 1.5;
-}
-
-.auth-card form .form-group {
-    margin-bottom: 18px;
+.auth-card form .primary-btn {
+    margin-top: 22px;
 }
 
 /* ========================================
-   BUTTONS
+   BUTTONS AND MESSAGES
 ======================================== */
 
 .primary-btn,
 .secondary-btn {
     display: inline-flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 11px 17px;
     border: 0;
@@ -226,9 +206,15 @@ textarea {
     transform: translateY(-1px);
 }
 
+.primary-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    transform: none;
+}
+
 .secondary-btn {
-    color: #43516a;
     background: #edf1f7;
+    color: #43516a;
 }
 
 .secondary-btn:hover {
@@ -237,8 +223,6 @@ textarea {
 
 .full-btn {
     width: 100%;
-    padding: 13px;
-    margin-top: 5px;
 }
 
 .message {
@@ -248,50 +232,49 @@ textarea {
     line-height: 1.5;
 }
 
+.full-width {
+    width: 100%;
+}
+
 /* ========================================
-   MAIN APPLICATION LAYOUT
+   MAIN APPLICATION
 ======================================== */
 
-.app-layout {
+.dashboard-section {
     min-height: 100vh;
 }
 
 .sidebar {
-    width: 245px;
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 10;
     display: flex;
     flex-direction: column;
+    width: 245px;
     padding: 27px 18px 20px;
     background: var(--navy);
     color: white;
 }
 
 .sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
     padding: 0 8px;
-    margin-bottom: 55px;
-    font-size: 21px;
-    font-weight: 750;
-    letter-spacing: -0.5px;
+    margin-bottom: 48px;
 }
 
-.sidebar-brand .brand-mark {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+.sidebar-brand h2 {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
 }
 
-.nav-label {
-    padding: 0 12px;
-    margin-bottom: 13px;
-    color: #8492aa;
-    font-size: 10px;
-    font-weight: 750;
-    letter-spacing: 1.5px;
+.sidebar-brand h2 span {
+    color: #83a4ff;
+}
+
+.sidebar-brand p {
+    margin-top: 5px;
+    color: #aab7cb;
+    font-size: 11px;
 }
 
 .sidebar-nav {
@@ -304,12 +287,21 @@ textarea {
     display: flex;
     align-items: center;
     gap: 13px;
-    padding: 12px 13px;
-    color: #b9c5d8;
-    text-decoration: none;
+    width: 100%;
+    padding: 13px;
+    border: 0;
     border-radius: 8px;
+    background: transparent;
+    color: #b9c5d8;
+    text-align: left;
     font-weight: 550;
     transition: 0.2s;
+}
+
+.nav-link span {
+    width: 20px;
+    font-size: 17px;
+    text-align: center;
 }
 
 .nav-link:hover,
@@ -322,41 +314,15 @@ textarea {
     box-shadow: inset 3px 0 var(--blue);
 }
 
-.nav-icon {
-    width: 20px;
-    font-size: 17px;
-    text-align: center;
-}
-
 .sidebar-bottom {
     margin-top: auto;
 }
 
-.sidebar-note {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 12px;
-    margin-bottom: 15px;
-    color: #b9c5d8;
-    font-size: 12px;
-    border-top: 1px solid #293a57;
-    border-bottom: 1px solid #293a57;
-}
-
-.note-dot,
-.status-indicator {
-    width: 8px;
-    height: 8px;
-    background: #25bd83;
-    border-radius: 50%;
-}
-
 .logout-btn {
-    width: 100%;
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
     padding: 12px;
     border: 1px solid #354762;
     border-radius: 8px;
@@ -370,15 +336,15 @@ textarea {
 }
 
 /* ========================================
-   TOP BAR AND PAGE CONTENT
+   TOP HEADER AND MAIN CONTENT
 ======================================== */
 
 .main-content {
-    margin-left: 245px;
     min-height: 100vh;
+    margin-left: 245px;
 }
 
-.topbar {
+.top-header {
     min-height: 90px;
     display: flex;
     align-items: center;
@@ -389,63 +355,64 @@ textarea {
     border-bottom: 1px solid var(--border);
 }
 
-.eyebrow {
-    color: var(--blue);
-    font-size: 10px;
-    font-weight: 750;
-    letter-spacing: 1.3px;
-    margin-bottom: 7px;
-}
-
-.topbar h1 {
-    font-size: 22px;
+.top-header h2 {
     color: var(--navy);
+    font-size: 22px;
     letter-spacing: -0.5px;
 }
 
-.topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 9px;
+.top-header p {
+    margin-top: 5px;
     color: var(--muted);
     font-size: 12px;
 }
 
-.page-content {
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #526078;
+    font-size: 12px;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #eaf0ff;
+    color: var(--blue);
+    font-weight: 750;
+}
+
+.content-view {
     width: 100%;
     max-width: 1500px;
     padding: 30px 4%;
     margin: 0 auto;
 }
 
-/* ========================================
-   WELCOME SECTION
-======================================== */
-
-.welcome-section {
+.page-intro {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    margin-bottom: 27px;
+    margin-bottom: 25px;
 }
 
-.welcome-section h2 {
+.page-intro h2 {
+    margin-bottom: 6px;
+    color: var(--navy);
     font-size: 21px;
     letter-spacing: -0.5px;
-    margin-bottom: 6px;
 }
 
-.welcome-section p,
-.section-subtitle {
+.page-intro p {
     color: var(--muted);
     font-size: 13px;
     line-height: 1.6;
-}
-
-.quick-action {
-    text-decoration: none;
-    white-space: nowrap;
 }
 
 /* ========================================
@@ -454,31 +421,18 @@ textarea {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 19px;
-    margin-bottom: 26px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 25px;
 }
 
 .stat-card {
-    padding: 23px;
+    min-width: 0;
+    padding: 21px;
     background: white;
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: var(--shadow);
-}
-
-.stat-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.stat-label {
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 750;
-    letter-spacing: 1px;
 }
 
 .stat-icon {
@@ -487,8 +441,10 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 15px;
     border-radius: 10px;
     font-size: 17px;
+    font-weight: 750;
 }
 
 .blue-icon {
@@ -506,18 +462,30 @@ textarea {
     color: var(--orange);
 }
 
-.stat-value {
-    margin-top: 19px;
+.red-icon {
+    background: #ffebeb;
+    color: var(--red);
+}
+
+.stat-card p {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stat-card h2 {
+    margin-top: 8px;
     color: var(--navy);
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 750;
     letter-spacing: -1px;
 }
 
-.stat-description {
+.stat-card > span {
+    display: block;
     margin-top: 5px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
 }
 
 /* ========================================
@@ -525,74 +493,159 @@ textarea {
 ======================================== */
 
 .content-card {
-    padding: 25px;
-    margin-bottom: 23px;
+    padding: 24px;
+    margin-bottom: 22px;
     background: white;
     border: 1px solid var(--border);
     border-radius: 12px;
     box-shadow: var(--shadow);
-    scroll-margin-top: 25px;
 }
 
-.section-heading {
+.card-heading {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 23px;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.section-heading h2 {
+.card-heading h3 {
     color: var(--navy);
-    font-size: 19px;
-    letter-spacing: -0.4px;
+    font-size: 16px;
     margin-bottom: 5px;
 }
 
-.warning-pill {
-    padding: 7px 12px;
-    color: #ad6900;
-    background: #fff4df;
-    border-radius: 30px;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
+.card-heading p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* ========================================
+   INVENTORY CHARTS
+======================================== */
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 22px;
+    align-items: stretch;
+}
+
+.chart-card {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 290px;
+    overflow: visible;
 }
 
 /* ========================================
    PRODUCT FORM
 ======================================== */
 
-.product-form {
+.form-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
-    padding: 20px;
-    background: #f9faff;
-    border: 1px solid #edf0f6;
-    border-radius: 10px;
+    margin-bottom: 18px;
 }
 
-.form-wide {
-    grid-column: 1 / -1;
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    color: #35425a;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.form-group small {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 .form-actions {
     display: flex;
-    gap: 10px;
     flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 7px;
 }
+
+/* ========================================
+   PRODUCT SEARCH
+======================================== */
 
 .table-heading {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin: 27px 0 15px;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 14px;
 }
 
 .table-heading h3 {
+    margin-bottom: 5px;
+    color: var(--navy);
     font-size: 16px;
-    margin-bottom: 4px;
+}
+
+.section-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.product-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 440px;
+    margin: 15px 0 20px;
+    padding: 0 14px;
+    background: white;
+    border: 1px solid #dce3ed;
+    border-radius: 9px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.product-search:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(53, 99, 233, 0.1);
+}
+
+.search-icon {
+    color: #778399;
+    font-size: 23px;
+    line-height: 1;
+}
+
+.product-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 13px 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+    font-size: 13px;
+}
+
+.product-search input:focus {
+    border: 0;
+    box-shadow: none;
 }
 
 /* ========================================
@@ -606,7 +659,7 @@ textarea {
 
 .product-table {
     width: 100%;
-    min-width: 750px;
+    min-width: 720px;
     border-collapse: collapse;
     text-align: left;
 }
@@ -623,7 +676,7 @@ textarea {
 }
 
 .product-table td {
-    padding: 16px 14px;
+    padding: 15px 14px;
     border-bottom: 1px solid #edf0f5;
     color: #46536a;
     font-size: 12px;
@@ -654,18 +707,18 @@ textarea {
 }
 
 .stock-normal {
-    color: #12835e;
     background: #e6f7ef;
+    color: #12835e;
 }
 
 .stock-low {
-    color: #bd7100;
     background: #fff2dc;
+    color: #bd7100;
 }
 
 .stock-out {
-    color: #c63737;
     background: #ffebeb;
+    color: #c63737;
 }
 
 .action-buttons {
@@ -682,8 +735,8 @@ textarea {
 }
 
 .edit-btn {
-    color: var(--blue);
     background: #edf2ff;
+    color: var(--blue);
 }
 
 .edit-btn:hover {
@@ -691,8 +744,8 @@ textarea {
 }
 
 .delete-btn {
-    color: #d13d3d;
     background: #fff0f0;
+    color: #d13d3d;
 }
 
 .delete-btn:hover {
@@ -700,13 +753,14 @@ textarea {
 }
 
 .empty-state {
-    padding: 25px;
+    padding: 28px 18px;
     color: var(--muted);
     text-align: center;
+    line-height: 1.6;
 }
 
 /* ========================================
-   LOW STOCK LIST
+   LOW STOCK AND OUT OF STOCK LISTS
 ======================================== */
 
 .low-stock-list {
@@ -717,8 +771,8 @@ textarea {
 
 .low-stock-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 15px;
     padding: 15px;
     background: #fffaf2;
@@ -748,26 +802,26 @@ textarea {
    SETTINGS
 ======================================== */
 
-.settings-form {
-    max-width: 440px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.settings-card {
+    max-width: 700px;
 }
 
-.settings-form button {
-    align-self: flex-start;
+.settings-card form {
+    max-width: 440px;
+}
+
+.settings-card .primary-btn {
+    margin-top: 5px;
 }
 
 /* ========================================
    FOOTER
 ======================================== */
 
-.page-footer {
+.app-footer {
     display: flex;
     justify-content: space-between;
-    gap: 15px;
-    padding: 10px 0 20px;
+    padding: 5px 4% 22px;
     color: #8994a6;
     font-size: 11px;
 }
@@ -776,17 +830,27 @@ textarea {
    RESPONSIVE DESIGN
 ======================================== */
 
-@media (max-width: 1050px) {
+@media (max-width: 1150px) {
     .sidebar {
-        width: 210px;
+        width: 215px;
     }
 
     .main-content {
-        margin-left: 210px;
+        margin-left: 215px;
     }
 
-    .product-form {
+    .stats-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container {
+        height: 270px;
     }
 }
 
@@ -794,91 +858,107 @@ textarea {
     .sidebar {
         position: relative;
         width: 100%;
-        padding: 15px;
+        padding: 16px;
     }
 
     .sidebar-brand {
-        margin-bottom: 17px;
-    }
-
-    .nav-label {
-        margin-bottom: 8px;
+        margin-bottom: 18px;
     }
 
     .sidebar-nav {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .nav-link {
+        justify-content: center;
+        padding: 11px 7px;
+        font-size: 12px;
+    }
+
+    .nav-link span {
+        width: auto;
     }
 
     .sidebar-bottom {
-        margin-top: 15px;
-    }
-
-    .sidebar-note {
-        display: none;
+        margin-top: 12px;
     }
 
     .main-content {
         margin-left: 0;
     }
 
-    .topbar {
+    .top-header {
         min-height: 75px;
         padding: 15px 20px;
     }
 
-    .topbar h1 {
+    .top-header h2 {
         font-size: 19px;
     }
 
-    .topbar-right {
-        display: none;
+    .user-info {
+        max-width: 45%;
+        overflow-wrap: anywhere;
     }
 
-    .page-content {
+    .content-view {
         padding: 22px 16px;
     }
 
     .stats-grid {
-        grid-template-columns: 1fr;
         gap: 12px;
     }
 
     .stat-card {
-        padding: 19px;
+        padding: 17px;
     }
 
-    .welcome-section {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .product-form {
+    .form-grid {
         grid-template-columns: 1fr;
-        padding: 15px;
-    }
-
-    .form-wide {
-        grid-column: auto;
+        gap: 0;
     }
 
     .content-card {
         padding: 18px;
     }
 
-    .page-footer {
-        flex-direction: column;
+    .chart-container {
+        height: 250px;
+    }
+
+    .app-footer {
+        padding: 5px 16px 20px;
     }
 }
 
-@media (max-width: 450px) {
+@media (max-width: 480px) {
     .auth-card {
-        padding: 25px 20px;
+        padding: 27px 20px;
     }
 
-    .section-heading {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .top-header {
         align-items: flex-start;
         flex-direction: column;
+        gap: 10px;
+    }
+
+    .user-info {
+        max-width: 100%;
+    }
+
+    .sidebar-nav {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-link {
+        justify-content: flex-start;
+        padding: 11px 13px;
     }
 
     .low-stock-item {
@@ -886,46 +966,11 @@ textarea {
         flex-direction: column;
     }
 
-    .sidebar-nav {
-        grid-template-columns: 1fr 1fr;
+    .table-heading {
+        align-items: flex-start;
     }
 
-    .topbar h1 {
-        font-size: 17px;
-    }
-}
-
-/* ========================================
-   INVENTORY ANALYTICS CHARTS
-======================================== */
-
-.analytics-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-    margin-bottom: 23px;
-    align-items: stretch;
-}
-
-.chart-card {
-    min-width: 0;
-    margin-bottom: 0;
-}
-
-.chart-container {
-    position: relative;
-    width: 100%;
-    height: 300px;
-}
-
-@media (max-width: 900px) {
-    .analytics-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 760px) {
-    .chart-container {
-        height: 260px;
+    .product-search {
+        max-width: 100%;
     }
 }

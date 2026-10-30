@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#101d36">
     <title>StockFlow | Inventory Management</title>
+
     <link rel="stylesheet" href="/css/style.css">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="/js/app.js" defer></script>
@@ -14,102 +15,77 @@
 <body>
 
     <!-- Authentication -->
-    <div class="auth-page" id="authContainer">
+    <section id="authSection" class="auth-section">
         <div class="auth-card">
-            <div class="auth-brand">
-                <div class="brand-mark">S</div>
-                <h1>StockFlow</h1>
-                <p>Inventory management made simple.</p>
+            <div class="brand">
+                <h1>Stock<span>Flow</span></h1>
+                <p>Inventory Management Made Simple</p>
             </div>
 
-            <div class="tabs">
-                <button type="button" id="loginTab" class="active" onclick="showLogin()">Login</button>
-                <button type="button" id="registerTab" onclick="showRegister()">Register</button>
+            <div class="auth-tabs">
+                <button type="button" id="loginTab" class="auth-tab active">Login</button>
+                <button type="button" id="registerTab" class="auth-tab">Register</button>
             </div>
 
             <form id="loginForm">
-                <h2>Welcome back</h2>
-                <p class="form-intro">Sign in to manage your inventory.</p>
+                <h2>Welcome Back</h2>
+                <p class="form-subtitle">Login to manage your inventory.</p>
 
-                <div class="form-group">
-                    <label for="loginEmail">Email address</label>
-                    <input type="email" id="loginEmail" placeholder="you@company.com" required>
-                </div>
+                <label for="loginEmail">Email Address</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required>
 
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
-                </div>
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required>
 
-                <button type="submit" class="primary-btn full-btn">Sign In</button>
+                <button type="submit" class="primary-btn full-btn">Login</button>
+                <p id="loginMessage" class="message" aria-live="polite"></p>
             </form>
 
             <form id="registerForm" class="hidden">
-                <h2>Create your account</h2>
-                <p class="form-intro">Set up your organization to get started.</p>
+                <h2>Create Account</h2>
+                <p class="form-subtitle">Start managing your inventory today.</p>
 
-                <div class="form-group">
-                    <label for="organizationName">Organization name</label>
-                    <input type="text" id="organizationName" placeholder="Your company name" required>
-                </div>
+                <label for="registerOrganization">Organization Name</label>
+                <input type="text" id="registerOrganization" placeholder="Enter organization name" required>
 
-                <div class="form-group">
-                    <label for="registerEmail">Email address</label>
-                    <input type="email" id="registerEmail" placeholder="you@company.com" required>
-                </div>
+                <label for="registerEmail">Email Address</label>
+                <input type="email" id="registerEmail" placeholder="Enter your email" required>
 
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" placeholder="Minimum 8 characters" minlength="8" required>
-                </div>
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" placeholder="Create a password" required minlength="6">
 
                 <button type="submit" class="primary-btn full-btn">Create Account</button>
+                <p id="registerMessage" class="message" aria-live="polite"></p>
             </form>
-
-            <p id="message" class="message" aria-live="polite"></p>
         </div>
-    </div>
+    </section>
 
-    <!-- Main Dashboard -->
-    <div id="dashboard" class="app-layout hidden">
+    <!-- Main Application -->
+    <section id="dashboardSection" class="dashboard-section hidden">
 
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-mark">S</div>
-                <span>StockFlow</span>
+                <h2>Stock<span>Flow</span></h2>
+                <p>Inventory Management</p>
             </div>
 
-            <p class="nav-label">WORKSPACE</p>
-
             <nav class="sidebar-nav">
-                <a href="#overview" class="nav-link active">
-                    <span class="nav-icon">▦</span>
-                    Dashboard
-                </a>
+                <button type="button" class="nav-link active" data-section="dashboardView">
+                    <span>▦</span> Dashboard
+                </button>
 
-                <a href="#products" class="nav-link">
-                    <span class="nav-icon">▤</span>
-                    Products
-                </a>
+                <button type="button" class="nav-link" data-section="productsView">
+                    <span>▤</span> Products
+                </button>
 
-                <a href="#low-stock" class="nav-link">
-                    <span class="nav-icon">⚠</span>
-                    Low Stock
-                </a>
-
-                <a href="#settings" class="nav-link">
-                    <span class="nav-icon">⚙</span>
-                    Settings
-                </a>
+                <button type="button" class="nav-link" data-section="settingsView">
+                    <span>⚙</span> Settings
+                </button>
             </nav>
 
             <div class="sidebar-bottom">
-                <div class="sidebar-note">
-                    <span class="note-dot"></span>
-                    Inventory workspace
-                </div>
-                <button id="logoutBtn" class="logout-btn" type="button">
+                <button type="button" id="logoutBtn" class="logout-btn">
                     <span>↪</span> Logout
                 </button>
             </div>
@@ -118,149 +94,191 @@
         <!-- Main Content -->
         <main class="main-content">
 
-            <header class="topbar">
+            <header class="top-header">
                 <div>
-                    <p class="eyebrow">WORKSPACE / OVERVIEW</p>
-                    <h1>Inventory Dashboard</h1>
+                    <h2 id="pageTitle">Dashboard</h2>
+                    <p>Welcome to your inventory workspace.</p>
                 </div>
-                <div class="topbar-right">
-                    <span class="status-indicator"></span>
-                    <span>Inventory overview</span>
+
+                <div class="user-info">
+                    <span class="user-avatar">U</span>
+                    <span id="userEmail">User</span>
                 </div>
             </header>
 
-            <div class="page-content">
+            <!-- Dashboard View -->
+            <section id="dashboardView" class="content-view">
 
-                <section id="overview" class="welcome-section">
+                <div class="page-intro">
                     <div>
-                        <h2>Welcome to StockFlow</h2>
-                        <p>Here is what's happening with your inventory today.</p>
+                        <h2>Inventory Overview</h2>
+                        <p>Monitor your stock and business inventory.</p>
                     </div>
-                    <a href="#products" class="primary-btn quick-action">Manage Products <span>→</span></a>
-                </section>
+                </div>
 
-                <!-- Summary Cards -->
-                <section class="stats-grid">
-                    <article class="stat-card">
-                        <div class="stat-top">
-                            <span class="stat-label">TOTAL PRODUCTS</span>
-                            <span class="stat-icon blue-icon">▤</span>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue-icon">▤</div>
+                        <p>Products</p>
+                        <h2 id="totalProducts">0</h2>
+                        <span>Products in inventory</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green-icon">▣</div>
+                        <p>Total Stock</p>
+                        <h2 id="totalUnits">0</h2>
+                        <span>Units available</span>
+                    </div>
+
+                    <div class="stat-card warning-card">
+                        <div class="stat-icon orange-icon">⚠</div>
+                        <p>Low Stock Items</p>
+                        <h2 id="lowStockCount">0</h2>
+                        <span>Items need attention</span>
+                    </div>
+
+                    <div class="stat-card danger-card">
+                        <div class="stat-icon red-icon">!</div>
+                        <p>Out of Stock</p>
+                        <h2 id="outOfStockCount">0</h2>
+                        <span>Items unavailable</span>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="analytics-grid">
+                    <div class="content-card chart-card">
+                        <div class="card-heading">
+                            <div>
+                                <h3>Stock Units</h3>
+                                <p>Available quantity by stock status</p>
+                            </div>
                         </div>
-                        <p class="stat-value" id="totalProducts">0</p>
-                        <p class="stat-description">Products in your inventory</p>
-                    </article>
-
-                    <article class="stat-card">
-                        <div class="stat-top">
-                            <span class="stat-label">TOTAL UNITS</span>
-                            <span class="stat-icon green-icon">▥</span>
+                        <div class="chart-container">
+                            <canvas id="stockQuantityChart"></canvas>
                         </div>
-                        <p class="stat-value" id="totalUnits">0</p>
-                        <p class="stat-description">Units currently in stock</p>
-                    </article>
+                    </div>
 
-                    <article class="stat-card">
-                        <div class="stat-top">
-                            <span class="stat-label">LOW STOCK ITEMS</span>
-                            <span class="stat-icon orange-icon">⚠</span>
+                    <div class="content-card chart-card">
+                        <div class="card-heading">
+                            <div>
+                                <h3>Stock Overview</h3>
+                                <p>Products by stock status</p>
+                            </div>
                         </div>
-                        <p class="stat-value" id="lowStockCount">0</p>
-                        <p class="stat-description">Products requiring attention</p>
-                    </article>
-                </section>
-<!-- INVENTORY ANALYTICS -->
-<section class="analytics-grid">
+                        <div class="chart-container">
+                            <canvas id="stockDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
 
-    <article class="content-card chart-card">
-        <div class="section-heading">
-            <div>
-                <p class="eyebrow">INVENTORY ANALYTICS</p>
-                <h2>Stock Quantity Overview</h2>
-                <p class="section-subtitle">
-                    Quantity distribution by stock status.
-                </p>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <canvas id="stockQuantityChart"></canvas>
-        </div>
-    </article>
-
-    <article class="content-card chart-card">
-        <div class="section-heading">
-            <div>
-                <p class="eyebrow">PRODUCT ANALYTICS</p>
-                <h2>Stock Distribution</h2>
-                <p class="section-subtitle">
-                    Products grouped by stock status.
-                </p>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <canvas id="stockDistributionChart"></canvas>
-        </div>
-    </article>
-
-</section>
-                <!-- Products -->
-                <section id="products" class="content-card">
-                    <div class="section-heading">
+                <!-- Low Stock -->
+                <div class="content-card">
+                    <div class="card-heading">
                         <div>
-                            <p class="eyebrow">INVENTORY</p>
-                            <h2>Product Management</h2>
-                            <p class="section-subtitle">Add, update and manage your products.</p>
+                            <h3>Low Stock Alerts</h3>
+                            <p>Products that need restocking</p>
                         </div>
                     </div>
 
-                    <form id="productForm" class="product-form">
+                    <div id="lowStockList" class="low-stock-list">
+                        Loading low stock items...
+                    </div>
+                </div>
+
+                <!-- Out of Stock -->
+                <div class="content-card">
+                    <div class="card-heading">
+                        <div>
+                            <h3>Out of Stock</h3>
+                            <p>Products with zero available quantity</p>
+                        </div>
+                    </div>
+
+                    <div id="outOfStockList" class="low-stock-list">
+                        Loading out of stock items...
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Products View -->
+            <section id="productsView" class="content-view hidden">
+
+                <div class="page-intro">
+                    <div>
+                        <h2>Product Management</h2>
+                        <p>Add, update, search and manage your inventory products.</p>
+                    </div>
+                </div>
+
+                <!-- Add / Edit Product -->
+                <div class="content-card">
+                    <div class="card-heading">
+                        <div>
+                            <h3 id="productFormTitle">Add New Product</h3>
+                            <p>Enter the product information below.</p>
+                        </div>
+                    </div>
+
+                    <form id="productForm">
                         <input type="hidden" id="productId">
 
-                        <div class="form-group">
-                            <label for="productName">Product name</label>
-                            <input type="text" id="productName" placeholder="e.g. Wireless Keyboard" required>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="productName">Product Name *</label>
+                                <input type="text" id="productName" placeholder="Enter product name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="productSku">Product Code *</label>
+                                <input type="text" id="productSku" placeholder="Example: KB-101" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="productQuantity">Quantity *</label>
+                                <input type="number" id="productQuantity" min="0" step="1" placeholder="Enter quantity" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="productCost">Purchase Price</label>
+                                <input type="number" id="productCost" min="0" step="0.01" placeholder="Enter purchase price">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="productSelling">Sale Price</label>
+                                <input type="number" id="productSelling" min="0" step="0.01" placeholder="Enter sale price">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="productLowStockThreshold">Low Stock Alert Level</label>
+                                <input type="number" id="productLowStockThreshold" min="0" step="1" placeholder="Use default setting">
+                                <small>Leave empty to use the default alert level.</small>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="productSku">SKU</label>
-                            <input type="text" id="productSku" placeholder="e.g. KB-101" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="productQuantity">Quantity</label>
-                            <input type="number" id="productQuantity" placeholder="0" min="0" step="1" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="productCost">Cost price (₹)</label>
-                            <input type="number" id="productCost" placeholder="0.00" min="0" step="0.01" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="productSelling">Selling price (₹)</label>
-                            <input type="number" id="productSelling" placeholder="0.00" min="0" step="0.01" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="productLowStockThreshold">Low-stock threshold</label>
-                            <input type="number" id="productLowStockThreshold" placeholder="Use default" min="0" step="1">
-                            <small>Leave empty to use your organization default.</small>
-                        </div>
-
-                        <div class="form-group form-wide">
+                        <div class="form-group full-width">
                             <label for="productDescription">Description</label>
-                            <textarea id="productDescription" placeholder="Add a short product description"></textarea>
+                            <textarea id="productDescription" rows="3" placeholder="Enter product description (optional)"></textarea>
                         </div>
 
-                        <div class="form-actions form-wide">
-                            <button type="submit" id="productSubmitBtn" class="primary-btn">+ Add Product</button>
-                            <button type="button" id="cancelEditBtn" class="secondary-btn hidden">Cancel</button>
+                        <div class="form-actions">
+                            <button type="submit" id="productSubmitBtn" class="primary-btn">
+                                Add Product
+                            </button>
+
+                            <button type="button" id="cancelEditBtn" class="secondary-btn hidden">
+                                Cancel Edit
+                            </button>
                         </div>
+
+                        <p id="productMessage" class="message" aria-live="polite"></p>
                     </form>
+                </div>
 
-                    <p id="productMessage" class="message" aria-live="polite"></p>
-
+                <!-- Product List and Search -->
+                <div class="content-card">
                     <div class="table-heading">
                         <div>
                             <h3>All Products</h3>
@@ -268,79 +286,68 @@
                         </div>
                     </div>
 
+                    <div class="product-search">
+                        <span class="search-icon" aria-hidden="true">⌕</span>
+                        <input
+                            type="search"
+                            id="productSearch"
+                            placeholder="Search by product name or product code..."
+                            aria-label="Search products by name or product code"
+                        >
+                    </div>
+
                     <div id="productList" class="table-wrapper">
                         Loading products...
                     </div>
-                </section>
-                <!-- Low Stock -->
-<!-- LOW STOCK PRODUCTS -->
-<section id="low-stock" class="content-card">
-    <div class="section-heading">
-        <div>
-            <p class="eyebrow">ATTENTION REQUIRED</p>
-            <h2>Low Stock Products</h2>
-            <p class="section-subtitle">
-                Products that have reached their stock threshold.
-            </p>
-        </div>
-        <span class="warning-pill">Low stock alerts</span>
-    </div>
+                </div>
 
-    <div id="lowStockList" class="low-stock-list">
-        Loading inventory...
-    </div>
-</section>
+            </section>
 
-<!-- OUT OF STOCK PRODUCTS -->
-<section id="out-of-stock" class="content-card">
-    <div class="section-heading">
-        <div>
-            <p class="eyebrow">STOCK UNAVAILABLE</p>
-            <h2>Out of Stock Products</h2>
-            <p class="section-subtitle">
-                Products that currently have zero quantity.
-            </p>
-        </div>
-        <span class="warning-pill">Out of stock</span>
-    </div>
+            <!-- Settings View -->
+            <section id="settingsView" class="content-view hidden">
 
-    <div id="outOfStockList" class="low-stock-list">
-        Loading inventory...
-    </div>
-</section>
+                <div class="page-intro">
+                    <div>
+                        <h2>Settings</h2>
+                        <p>Configure your inventory preferences.</p>
+                    </div>
+                </div>
 
-
-                <!-- Settings -->
-                <section id="settings" class="content-card">
-                    <div class="section-heading">
+                <div class="content-card settings-card">
+                    <div class="card-heading">
                         <div>
-                            <p class="eyebrow">PREFERENCES</p>
-                            <h2>Inventory Settings</h2>
-                            <p class="section-subtitle">Configure your default stock alert threshold.</p>
+                            <h3>Inventory Settings</h3>
+                            <p>Set the default low-stock alert level.</p>
                         </div>
                     </div>
 
-                    <form id="settingsForm" class="settings-form">
+                    <form id="settingsForm">
                         <div class="form-group">
-                            <label for="lowStockThreshold">Default low-stock threshold</label>
-                            <input type="number" id="lowStockThreshold" min="0" step="1" required>
-                            <small>Used when a product does not have its own threshold.</small>
+                            <label for="lowStockThreshold">Default Low Stock Alert Level</label>
+                            <input
+                                type="number"
+                                id="lowStockThreshold"
+                                min="0"
+                                step="1"
+                                placeholder="Enter default alert level"
+                                required
+                            >
+                            <small>Products without their own alert level will use this value. When their quantity reaches this number or lower, they will appear in Low Stock Alerts.</small>
                         </div>
 
                         <button type="submit" class="primary-btn">Save Settings</button>
+                        <p id="settingsMessage" class="message" aria-live="polite"></p>
                     </form>
+                </div>
 
-                    <p id="settingsMessage" class="message" aria-live="polite"></p>
-                </section>
+            </section>
 
-                <footer class="page-footer">
-                    <span>StockFlow Inventory Management</span>
-                    <span>Manage your inventory with confidence.</span>
-                </footer>
+            <footer class="app-footer">
+                <p>StockFlow Inventory Management System</p>
+            </footer>
 
-            </div>
         </main>
-    </div>
+    </section>
 
 </body>
 </html>

@@ -8,19 +8,32 @@ let defaultLowStockThreshold = 10;
 let stockQuantityChart = null;
 let stockDistributionChart = null;
 
+let allProducts = [];
+
 const getElement = (id) => document.getElementById(id);
 
 // ========================================
-// SHOW DASHBOARD
+// API RESPONSE HELPER
 // ========================================
 
-async function showDashboard() {
-    getElement("authContainer").classList.add("hidden");
-    getElement("dashboard").classList.remove("hidden");
+async function readResponse(response) {
+    const text = await response.text();
 
-    await loadSettings();
-    await loadProducts();
-    await loadDashboard();
+    let data = {};
+
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch {
+            throw new Error("The server returned an invalid response.");
+        }
+    }
+
+    if (!response.ok) {
+        throw new Error(data.message || "Something went wrong.");
+    }
+
+    return data;
 }
 
 // ========================================
@@ -34,7 +47,8 @@ function showLogin() {
     getElement("loginTab").classList.add("active");
     getElement("registerTab").classList.remove("active");
 
-    getElement("message").textContent = "";
+    getElement("loginMessage").textContent = "";
+    getElement("registerMessage").textContent = "";
 }
 
 function showRegister() {
@@ -44,8 +58,238 @@ function showRegister() {
     getElement("registerTab").classList.add("active");
     getElement("loginTab").classList.remove("active");
 
-    getElement("message").textContent = "";
+    getElement("loginMessage").textContent = "";
+    getElement("registerMessage").textContent = "";
 }
+
+getElement("loginTab").addEventListener("click", showLogin);
+getElement("registerTab").addEventListener("click", showRegister);
+
+// ========================================
+// SHOW DASHBOARD
+// ========================================
+
+async function showDashboard() {
+    getElement("authSection").classList.add("hidden");
+    getElement("dashboardSection").classList.remove("hidden");
+
+    showSection("dashboardView");
+
+    await loadCurrentUser();
+    await loadSettings();
+    await loadProducts();
+    await loadDashboard();
+}
+
+// ========================================
+// CURRENT USER
+// ========================================
+
+async function loadCurrentUser() {
+    try {
+        const response = await fetch("/api/auth/me", {
+            credentials: "include"
+        });
+
+        const data = await readResponse(response);
+
+        const user = data.user || data;
+
+        if (user.email) {
+            getElement("userEmail").textContent = user.email;
+            getElement("userEmail").title = user.email;
+        }
+    } catch (error) {
+        console.error("Unable to load user details:", error);
+    }
+}
+
+// ========================================
+// LOGIN
+// ========================================
+
+getElement("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const message = getElement("loginMessage");
+    const submitButton = this.querySelector('button[type="submit"]');
+
+    message.style.color = "#778399";
+    message.textContent = "Signing in...";
+
+    submitButton.disabled = true;
+
+    try {
+        const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                email: getElement("loginEmail").value.trim(),
+                password: getElement("loginPassword").value
+            })
+        });
+
+        await readResponse(response);
+
+        this.reset();
+        message.textContent = "";
+
+        await showDashboard();
+
+    } catch (error) {
+        message.style.color = "#dc4444";
+        message.textContent = error.message;
+    } finally {
+        submitButton.disabled = false;
+    }
+});
+
+// ========================================
+// REGISTRATION
+// ========================================
+
+getElement("registerForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const message = getElement("registerMessage");
+    const submitButton = this.querySelector('button[type="submit"]');
+
+    message.style.color = "#778399";
+    message.textContent = "Creating your account...";
+
+    submitButton.disabled = true;
+
+    try {
+        const response = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                organizationName: getElement("registerOrganization").value.trim(),
+                email: getElement("registerEmail").value.trim(),
+                password: getElement("registerPassword").value
+            })
+        });
+
+        await readResponse(response);
+
+        this.reset();
+        showLogin();
+
+        getElement("loginMessage").style.color = "#15976b";
+        getElement("loginMessage").textContent =
+            "Account created successfully. Please log in.";
+
+    } catch (error) {
+        message.style.color = "#dc4444";
+        message.textContent = error.message;
+    } finally {
+        submitButton.disabled = false;
+    }
+});
+
+// ========================================
+// LOGOUT
+// ========================================
+
+getElement("logoutBtn").addEventListener("click", async function() {
+    try {
+        const response = await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        await readResponse(response);
+
+        getElement("dashboardSection").classList.add("hidden");
+        getElement("authSection").classList.remove("hidden");
+
+        getElement("loginForm").reset();
+        getElement("registerForm").reset();
+        getElement("productForm").reset();
+
+        allProducts = [];
+
+        getElement("productSearch").value = "";
+
+        resetProductForm();
+        showLogin();
+
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+// ========================================
+// CHECK EXISTING SESSION
+// ========================================
+
+async function checkSession() {
+    try {
+        const response = await fetch("/api/auth/me", {
+            credentials: "include"
+        });
+
+        if (response.ok) {
+            await showDashboard();
+        } else {
+            getElement("authSection").classList.remove("hidden");
+            getElement("dashboardSection").classList.add("hidden");
+            showLogin();
+        }
+    } catch (error) {
+        console.error("Session check failed:", error);
+        getElement("authSection").classList.remove("hidden");
+        getElement("dashboardSection").classList.add("hidden");
+    }
+}
+
+// ========================================
+// SIDEBAR NAVIGATION
+// ========================================
+
+function showSection(sectionId) {
+    document.querySelectorAll(".content-view").forEach(section => {
+        section.classList.add("hidden");
+    });
+
+    const selectedSection = getElement(sectionId);
+
+    if (selectedSection) {
+        selectedSection.classList.remove("hidden");
+    }
+
+    document.querySelectorAll(".nav-link").forEach(link => {
+        link.classList.toggle(
+            "active",
+            link.dataset.section === sectionId
+        );
+    });
+
+    const titles = {
+        dashboardView: "Dashboard",
+        productsView: "Products",
+        settingsView: "Settings"
+    };
+
+    getElement("pageTitle").textContent =
+        titles[sectionId] || "StockFlow";
+
+    if (sectionId === "dashboardView") {
+        updateInventoryCharts(allProducts);
+    }
+}
+
+document.querySelectorAll(".nav-link").forEach(link => {
+    link.addEventListener("click", function() {
+        showSection(this.dataset.section);
+    });
+});
 
 // ========================================
 // DASHBOARD
@@ -63,35 +307,35 @@ async function loadDashboard() {
             credentials: "include"
         });
 
-        if (response.status === 401) {
-            getElement("dashboard").classList.add("hidden");
-            getElement("authContainer").classList.remove("hidden");
-            showLogin();
-            return;
-        }
+        const data = await readResponse(response);
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Unable to load dashboard.");
-        }
+        const summary = data.summary || data;
 
         getElement("totalProducts").textContent =
-            data.totalProducts ?? 0;
+            summary.totalProducts ?? 0;
 
         getElement("totalUnits").textContent =
-            data.totalUnits ?? 0;
+            summary.totalUnits ?? 0;
 
         getElement("lowStockCount").textContent =
-            data.lowStockCount ?? 0;
+            summary.lowStockCount ?? 0;
 
-        renderLowStockProducts(data.lowStockProducts || []);
-        renderOutOfStockProducts(data.outOfStockProducts || []);
+        const lowStockProducts = data.lowStockProducts || [];
+        const outOfStockProducts = data.outOfStockProducts || [];
+
+        getElement("outOfStockCount").textContent =
+            summary.outOfStockCount ?? outOfStockProducts.length;
+
+        renderLowStockProducts(lowStockProducts);
+        renderOutOfStockProducts(outOfStockProducts);
+
+        updateInventoryCharts(allProducts);
 
     } catch (error) {
         console.error("Dashboard error:", error);
-        lowStockList.textContent = "Unable to load inventory.";
-        outOfStockList.textContent = "Unable to load inventory.";
+
+        lowStockList.textContent = error.message;
+        outOfStockList.textContent = error.message;
     }
 }
 
@@ -121,12 +365,14 @@ function renderLowStockProducts(products) {
         name.textContent = product.name;
 
         const info = document.createElement("p");
+
+        const threshold =
+            product.low_stock_threshold ??
+            product.lowStockThreshold ??
+            "Default";
+
         info.textContent =
-            `SKU: ${product.sku} | Threshold: ${
-                product.low_stock_threshold ??
-                product.lowStockThreshold ??
-                "Default"
-            }`;
+            `Product Code: ${product.sku} | Alert Level: ${threshold}`;
 
         details.append(name, info);
 
@@ -165,7 +411,7 @@ function renderOutOfStockProducts(products) {
         name.textContent = product.name;
 
         const info = document.createElement("p");
-        info.textContent = `SKU: ${product.sku}`;
+        info.textContent = `Product Code: ${product.sku}`;
 
         details.append(name, info);
 
@@ -179,140 +425,16 @@ function renderOutOfStockProducts(products) {
 }
 
 // ========================================
-// LOGIN
-// ========================================
-
-getElement("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const message = getElement("message");
-    message.style.color = "#778399";
-    message.textContent = "Signing in...";
-
-    try {
-        const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                email: getElement("loginEmail").value.trim(),
-                password: getElement("loginPassword").value
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Login failed.");
-        }
-
-        await showDashboard();
-
-    } catch (error) {
-        message.style.color = "#dc4444";
-        message.textContent = error.message;
-    }
-});
-
-// ========================================
-// REGISTRATION
-// ========================================
-
-getElement("registerForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const message = getElement("message");
-    message.style.color = "#778399";
-    message.textContent = "Creating your account...";
-
-    try {
-        const response = await fetch("/api/auth/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                organizationName: getElement("organizationName").value.trim(),
-                email: getElement("registerEmail").value.trim(),
-                password: getElement("registerPassword").value
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Registration failed.");
-        }
-
-        getElement("registerForm").reset();
-        showLogin();
-
-        message.style.color = "#15976b";
-        message.textContent = "Account created successfully. Please log in.";
-
-    } catch (error) {
-        message.style.color = "#dc4444";
-        message.textContent = error.message;
-    }
-});
-
-// ========================================
-// LOGOUT
-// ========================================
-
-getElement("logoutBtn").addEventListener("click", async function() {
-    try {
-        const response = await fetch("/api/auth/logout", {
-            method: "POST",
-            credentials: "include"
-        });
-
-        if (!response.ok) {
-            throw new Error("Unable to log out.");
-        }
-
-        getElement("dashboard").classList.add("hidden");
-        getElement("authContainer").classList.remove("hidden");
-
-        getElement("loginForm").reset();
-        getElement("registerForm").reset();
-
-        showLogin();
-
-    } catch (error) {
-        alert(error.message);
-    }
-});
-
-// ========================================
-// CHECK EXISTING SESSION
-// ========================================
-
-async function checkSession() {
-    try {
-        const response = await fetch("/api/auth/me", {
-            credentials: "include"
-        });
-
-        if (response.ok) {
-            await showDashboard();
-        }
-    } catch (error) {
-        console.error("Session check failed:", error);
-    }
-}
-
-// ========================================
 // PRODUCT MANAGEMENT
 // ========================================
 
 const productForm = getElement("productForm");
 const productMessage = getElement("productMessage");
 
-// Load products
+// ========================================
+// LOAD PRODUCTS
+// ========================================
+
 async function loadProducts() {
     const productList = getElement("productList");
     productList.textContent = "Loading products...";
@@ -322,17 +444,13 @@ async function loadProducts() {
             credentials: "include"
         });
 
-        const data = await response.json();
+        const data = await readResponse(response);
 
-        if (!response.ok) {
-            throw new Error(data.message || "Unable to load products.");
-        }
-
-        const products = Array.isArray(data)
+        allProducts = Array.isArray(data)
             ? data
             : data.products || [];
 
-        renderProducts(products);
+        renderProducts(allProducts);
 
     } catch (error) {
         console.error("Products error:", error);
@@ -341,7 +459,29 @@ async function loadProducts() {
 }
 
 // ========================================
-// STOCK STATUS CALCULATION
+// PRODUCT SEARCH
+// ========================================
+
+function searchProducts() {
+    const searchTerm = getElement("productSearch")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const filteredProducts = allProducts.filter(product => {
+        const name = String(product.name || "").toLowerCase();
+        const sku = String(product.sku || "").toLowerCase();
+
+        return name.includes(searchTerm) || sku.includes(searchTerm);
+    });
+
+    renderProducts(filteredProducts);
+}
+
+getElement("productSearch").addEventListener("input", searchProducts);
+
+// ========================================
+// STOCK STATUS
 // ========================================
 
 function getProductStockStatus(product) {
@@ -350,7 +490,7 @@ function getProductStockStatus(product) {
 
     const quantity = Number(product.quantity);
 
-    if (quantity === 0) {
+    if (quantity <= 0) {
         return "Out of Stock";
     }
 
@@ -374,7 +514,7 @@ function updateInventoryCharts(products) {
     }
 
     if (typeof Chart === "undefined") {
-        console.warn("Chart.js is not loaded. Inventory charts unavailable.");
+        console.warn("Chart.js is not loaded.");
         return;
     }
 
@@ -413,7 +553,12 @@ function updateInventoryCharts(products) {
         "#dc4444"
     ];
 
-    // BAR CHART: INVENTORY QUANTITY
+    const dataLabelsPlugin =
+        typeof ChartDataLabels !== "undefined"
+            ? [ChartDataLabels]
+            : [];
+
+    // BAR CHART
 
     if (stockQuantityChart) {
         stockQuantityChart.data.labels = labels;
@@ -425,20 +570,30 @@ function updateInventoryCharts(products) {
             type: "bar",
 
             data: {
-                labels: labels,
+                labels,
                 datasets: [{
-                    label: "Units",
+                    label: "Stock Units",
                     data: quantityData,
                     backgroundColor: chartColors,
                     borderRadius: 8,
-                    maxBarThickness: 55,
-                    minBarLength: 3
+                    maxBarThickness: 55
                 }]
             },
 
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+
+                // Extra space at the top prevents quantity labels
+                // from being cut off by the chart boundary.
+                layout: {
+                    padding: {
+                        top: 30,
+                        right: 12,
+                        left: 8,
+                        bottom: 4
+                    }
+                },
 
                 plugins: {
                     legend: {
@@ -449,21 +604,20 @@ function updateInventoryCharts(products) {
                         display: true,
                         anchor: "end",
                         align: "top",
+                        offset: 4,
+                        clip: false,
+                        clamp: false,
                         color: "#334155",
                         font: {
                             weight: "bold",
                             size: 12
                         },
-                        formatter: function(value) {
-                            return value;
-                        }
+                        formatter: value => value
                     },
 
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
-                                return `${context.parsed.y} units`;
-                            }
+                            label: context => `${context.parsed.y} units`
                         }
                     }
                 },
@@ -471,12 +625,13 @@ function updateInventoryCharts(products) {
                 scales: {
                     y: {
                         beginAtZero: true,
+                        grace: "20%",
                         ticks: {
                             precision: 0
                         },
                         title: {
                             display: true,
-                            text: "Total Quantity"
+                            text: "Stock Units"
                         }
                     },
 
@@ -488,13 +643,11 @@ function updateInventoryCharts(products) {
                 }
             },
 
-            plugins: typeof ChartDataLabels !== "undefined"
-                ? [ChartDataLabels]
-                : []
+            plugins: dataLabelsPlugin
         });
     }
 
-    // PIE CHART: PRODUCT DISTRIBUTION
+    // PIE CHART
 
     if (stockDistributionChart) {
         stockDistributionChart.data.labels = labels;
@@ -506,7 +659,7 @@ function updateInventoryCharts(products) {
             type: "pie",
 
             data: {
-                labels: labels,
+                labels,
                 datasets: [{
                     label: "Products",
                     data: distributionData,
@@ -528,9 +681,8 @@ function updateInventoryCharts(products) {
 
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${context.parsed} products`;
-                            }
+                            label: context =>
+                                `${context.label}: ${context.parsed} products`
                         }
                     }
                 }
@@ -547,12 +699,17 @@ function renderProducts(products) {
     const container = getElement("productList");
     container.innerHTML = "";
 
-    updateInventoryCharts(products);
+    // Charts always use all products, not filtered search results.
+    updateInventoryCharts(allProducts);
 
     if (!products.length) {
         const empty = document.createElement("div");
         empty.className = "empty-state";
-        empty.textContent = "No products added yet. Add your first product above.";
+
+        empty.textContent = allProducts.length === 0
+            ? "No products added yet. Add your first product above."
+            : "No products found. Try another product name or product code.";
+
         container.appendChild(empty);
         return;
     }
@@ -565,10 +722,10 @@ function renderProducts(products) {
 
     [
         "PRODUCT",
-        "SKU",
+        "PRODUCT CODE",
         "QUANTITY",
         "STOCK STATUS",
-        "SELLING PRICE",
+        "SALE PRICE",
         "ACTIONS"
     ].forEach(label => {
         const th = document.createElement("th");
@@ -600,7 +757,7 @@ function renderProducts(products) {
         name.textContent = product.name;
         nameCell.appendChild(name);
 
-        // SKU
+        // Product code
         const skuCell = document.createElement("td");
         const sku = document.createElement("span");
         sku.className = "product-sku";
@@ -611,20 +768,23 @@ function renderProducts(products) {
         const quantityCell = document.createElement("td");
         quantityCell.textContent = Number(product.quantity);
 
-        // Status
+        // Stock status
         const statusCell = document.createElement("td");
         const badge = document.createElement("span");
         badge.className = `stock-badge ${statusClass}`;
         badge.textContent = status;
         statusCell.appendChild(badge);
 
-        // Selling price
+        // Sale price
         const priceCell = document.createElement("td");
         const price = Number(product.selling_price);
 
-        priceCell.textContent = Number.isFinite(price)
-            ? `₹${price.toFixed(2)}`
-            : "—";
+        priceCell.textContent =
+            product.selling_price === null ||
+            product.selling_price === undefined ||
+            product.selling_price === ""
+                ? "—"
+                : `₹${price.toFixed(2)}`;
 
         // Actions
         const actionCell = document.createElement("td");
@@ -641,7 +801,10 @@ function renderProducts(products) {
         deleteButton.type = "button";
         deleteButton.className = "delete-btn";
         deleteButton.textContent = "Delete";
-        deleteButton.addEventListener("click", () => deleteProduct(product.id));
+        deleteButton.addEventListener(
+            "click",
+            () => deleteProduct(product.id)
+        );
 
         actions.append(editButton, deleteButton);
         actionCell.appendChild(actions);
@@ -673,12 +836,22 @@ productForm.addEventListener("submit", async function(event) {
     const thresholdValue =
         getElement("productLowStockThreshold").value.trim();
 
+    const costValue = getElement("productCost").value.trim();
+    const sellingValue = getElement("productSelling").value.trim();
+
     const product = {
         name: getElement("productName").value.trim(),
         sku: getElement("productSku").value.trim(),
         quantity: Number(getElement("productQuantity").value),
-        cost_price: Number(getElement("productCost").value),
-        selling_price: Number(getElement("productSelling").value),
+
+        cost_price: costValue === ""
+            ? null
+            : Number(costValue),
+
+        selling_price: sellingValue === ""
+            ? null
+            : Number(sellingValue),
+
         description: getElement("productDescription").value.trim(),
 
         low_stock_threshold: thresholdValue === ""
@@ -687,15 +860,33 @@ productForm.addEventListener("submit", async function(event) {
     };
 
     if (
+        !product.name ||
+        !product.sku ||
         !Number.isInteger(product.quantity) ||
-        product.quantity < 0 ||
-        (product.low_stock_threshold !== null &&
-            (!Number.isInteger(product.low_stock_threshold) ||
-             product.low_stock_threshold < 0))
+        product.quantity < 0
     ) {
         productMessage.style.color = "#dc4444";
         productMessage.textContent =
-            "Quantity and stock threshold must be non-negative whole numbers.";
+            "Please enter a product name, product code, and valid non-negative whole quantity.";
+        return;
+    }
+
+    if (
+        (product.low_stock_threshold !== null &&
+            (!Number.isInteger(product.low_stock_threshold) ||
+             product.low_stock_threshold < 0)) ||
+
+        (product.cost_price !== null &&
+            (!Number.isFinite(product.cost_price) ||
+             product.cost_price < 0)) ||
+
+        (product.selling_price !== null &&
+            (!Number.isFinite(product.selling_price) ||
+             product.selling_price < 0))
+    ) {
+        productMessage.style.color = "#dc4444";
+        productMessage.textContent =
+            "Please enter valid non-negative prices and stock alert level.";
         return;
     }
 
@@ -716,11 +907,7 @@ productForm.addEventListener("submit", async function(event) {
             body: JSON.stringify(product)
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Unable to save product.");
-        }
+        await readResponse(response);
 
         productMessage.style.color = "#15976b";
         productMessage.textContent = productId
@@ -747,11 +934,15 @@ productForm.addEventListener("submit", async function(event) {
 
 function editProduct(product) {
     getElement("productId").value = product.id;
-    getElement("productName").value = product.name;
-    getElement("productSku").value = product.sku;
-    getElement("productQuantity").value = product.quantity;
-    getElement("productCost").value = product.cost_price;
-    getElement("productSelling").value = product.selling_price;
+    getElement("productName").value = product.name || "";
+    getElement("productSku").value = product.sku || "";
+    getElement("productQuantity").value = product.quantity ?? "";
+
+    getElement("productCost").value =
+        product.cost_price ?? "";
+
+    getElement("productSelling").value =
+        product.selling_price ?? "";
 
     getElement("productLowStockThreshold").value =
         product.low_stock_threshold ?? "";
@@ -779,7 +970,7 @@ function resetProductForm() {
     productForm.reset();
 
     getElement("productId").value = "";
-    getElement("productSubmitBtn").textContent = "+ Add Product";
+    getElement("productSubmitBtn").textContent = "Add Product";
     getElement("cancelEditBtn").classList.add("hidden");
 }
 
@@ -803,11 +994,7 @@ async function deleteProduct(id) {
             credentials: "include"
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Unable to delete product.");
-        }
+        await readResponse(response);
 
         productMessage.style.color = "#15976b";
         productMessage.textContent = "Product deleted successfully.";
@@ -831,11 +1018,7 @@ async function loadSettings() {
             credentials: "include"
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to load settings.");
-        }
+        const data = await readResponse(response);
 
         defaultLowStockThreshold =
             Number(data.defaultLowStockThreshold ?? 10);
@@ -844,12 +1027,17 @@ async function loadSettings() {
             defaultLowStockThreshold;
 
     } catch (error) {
+        console.error("Settings load error:", error);
+
         getElement("settingsMessage").style.color = "#dc4444";
         getElement("settingsMessage").textContent = error.message;
     }
 }
 
-// Save settings
+// ========================================
+// SAVE SETTINGS
+// ========================================
+
 getElement("settingsForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
@@ -864,6 +1052,9 @@ getElement("settingsForm").addEventListener("submit", async function(event) {
         return;
     }
 
+    const submitButton = this.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+
     try {
         const response = await fetch("/api/settings", {
             method: "PUT",
@@ -876,13 +1067,10 @@ getElement("settingsForm").addEventListener("submit", async function(event) {
             })
         });
 
-        const data = await response.json();
+        const data = await readResponse(response);
 
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to save settings.");
-        }
-
-        defaultLowStockThreshold = threshold;
+        defaultLowStockThreshold =
+            Number(data.defaultLowStockThreshold ?? threshold);
 
         getElement("settingsMessage").style.color = "#15976b";
         getElement("settingsMessage").textContent =
@@ -894,21 +1082,9 @@ getElement("settingsForm").addEventListener("submit", async function(event) {
     } catch (error) {
         getElement("settingsMessage").style.color = "#dc4444";
         getElement("settingsMessage").textContent = error.message;
+    } finally {
+        submitButton.disabled = false;
     }
-});
-
-// ========================================
-// SIDEBAR NAVIGATION
-// ========================================
-
-document.querySelectorAll(".nav-link").forEach(link => {
-    link.addEventListener("click", function() {
-        document.querySelectorAll(".nav-link").forEach(item => {
-            item.classList.remove("active");
-        });
-
-        this.classList.add("active");
-    });
 });
 
 // ========================================
