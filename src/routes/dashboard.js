@@ -23,20 +23,32 @@ router.get("/", requireAuth, async (req, res) => {
       `SELECT
         COUNT(p.id) AS totalProducts,
         COALESCE(SUM(p.quantity), 0) AS totalUnits,
+
         COALESCE(
           SUM(
             CASE
-              WHEN p.quantity <= COALESCE(
-                p.low_stock_threshold,
-                s.default_low_stock_threshold,
-                o.default_low_stock_threshold,
-                10
-              )
+              WHEN p.quantity > 0
+                AND p.quantity <= COALESCE(
+                  p.low_stock_threshold,
+                  s.default_low_stock_threshold,
+                  o.default_low_stock_threshold,
+                  10
+                )
               THEN 1
               ELSE 0
             END
           ), 0
-        ) AS lowStockCount
+        ) AS lowStockCount,
+
+        COALESCE(
+          SUM(
+            CASE
+              WHEN p.quantity = 0 THEN 1
+              ELSE 0
+            END
+          ), 0
+        ) AS outOfStockCount
+
       FROM products p
       JOIN organizations o
         ON o.id = p.organization_id
@@ -46,7 +58,7 @@ router.get("/", requireAuth, async (req, res) => {
       [organizationId]
     );
 
-    // Get products that need restocking
+    // Get only low-stock products
     const [lowStockProducts] = await db.execute(
       `SELECT
         p.id,
@@ -65,6 +77,7 @@ router.get("/", requireAuth, async (req, res) => {
       LEFT JOIN settings s
         ON s.organization_id = p.organization_id
       WHERE p.organization_id = ?
+        AND p.quantity > 0
         AND p.quantity <= COALESCE(
           p.low_stock_threshold,
           s.default_low_stock_threshold,
@@ -75,10 +88,26 @@ router.get("/", requireAuth, async (req, res) => {
       [organizationId]
     );
 
+    // Get out-of-stock products separately
+    const [outOfStockProducts] = await db.execute(
+      `SELECT
+        p.id,
+        p.name,
+        p.sku,
+        p.quantity
+      FROM products p
+      WHERE p.organization_id = ?
+        AND p.quantity = 0
+      ORDER BY p.name ASC`,
+      [organizationId]
+    );
+
     res.json({
-    ...summaryRows[0],
-    lowStockProducts
-});
+      ...summaryRows[0],
+      lowStockProducts,
+      outOfStockProducts
+    });
+
   } catch (error) {
     console.error("Dashboard error:", error);
     res.status(500).json({
@@ -86,5 +115,5 @@ router.get("/", requireAuth, async (req, res) => {
     });
   }
 });
-module.exports = router;
 
+module.exports = router;
