@@ -8,7 +8,7 @@
    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="authContainer">
     <div class="logo">
       <h1>StockFlow</h1>
       <p>Inventory management made simple</p>
@@ -61,6 +61,43 @@
     <p id="message" class="message"></p>
 
   </div>
+
+  <!-- Dashboard -->
+<div id="dashboard" class="dashboard hidden">
+    <header class="dashboard-header">
+        <h2>StockFlow</h2>
+        <button id="logoutBtn" type="button">Logout</button>
+    </header>
+
+    <main class="dashboard-content">
+        <h1>Inventory Dashboard</h1>
+        <p>Welcome to your inventory management system.</p>
+
+        <section class="stats">
+            <div class="stat-card">
+                <h3>Total Products</h3>
+                <p id="totalProducts">0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Units</h3>
+                <p id="totalUnits">0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Low Stock Items</h3>
+                <p id="lowStockCount">0</p>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2>Low Stock Products</h2>
+            <div id="lowStockList">
+                <p>Loading inventory...</p>
+            </div>
+        </section>
+    </main>
+</div>
 <script src="/js/app.js" defer></script>
 </body>
 </html>
