@@ -133,6 +133,27 @@
                 <p>Loading inventory...</p>
             </div>
         </section>
+        <section class="dashboard-section">
+    <h2>Inventory Settings</h2>
+
+    <form id="settingsForm">
+        <label for="lowStockThreshold">
+            Default Low-Stock Threshold
+        </label>
+
+        <input
+            type="number"
+            id="lowStockThreshold"
+            min="0"
+            step="1"
+            required
+        >
+
+        <button type="submit">Save Settings</button>
+    </form>
+
+    <p id="settingsMessage"></p>
+</section>
     </main>
 </div>
 <script src="/js/app.js" defer></script>

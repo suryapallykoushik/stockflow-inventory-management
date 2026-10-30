@@ -76,10 +76,9 @@ router.get("/", requireAuth, async (req, res) => {
     );
 
     res.json({
-      summary: summaryRows[0],
-      lowStockProducts
-    });
-
+    ...summaryRows[0],
+    lowStockProducts
+});
   } catch (error) {
     console.error("Dashboard error:", error);
     res.status(500).json({
@@ -87,6 +86,5 @@ router.get("/", requireAuth, async (req, res) => {
     });
   }
 });
-
 module.exports = router;
 

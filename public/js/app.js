@@ -25,15 +25,13 @@ async function showDashboard() {
     document.getElementById("dashboard").classList.remove("hidden");
 
     await loadDashboard();
-
     await loadProducts();
+    await loadSettings();
 }
-
 // Load dashboard information
 async function loadDashboard() {
     const lowStockList = document.getElementById("lowStockList");
     lowStockList.textContent = "Loading inventory...";
-
     try {
         const response = await fetch("/api/dashboard", {
             credentials: "include"
@@ -364,3 +362,61 @@ async function deleteProduct(id) {
         productMessage.style.color = "red";
     }
 }
+// Load inventory settings
+async function loadSettings() {
+    try {
+        const response = await fetch("/api/settings", {
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to load settings");
+        }
+
+        document.getElementById("lowStockThreshold").value =
+            data.defaultLowStockThreshold;
+
+    } catch (error) {
+        document.getElementById("settingsMessage").textContent =
+            error.message;
+    }
+}
+
+// Save inventory settings
+document.getElementById("settingsForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const threshold = Number(
+        document.getElementById("lowStockThreshold").value
+    );
+
+    try {
+        const response = await fetch("/api/settings", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                defaultLowStockThreshold: threshold
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to save settings");
+        }
+
+        document.getElementById("settingsMessage").textContent =
+            "Settings saved successfully!";
+
+        await loadDashboard();
+
+    } catch (error) {
+        document.getElementById("settingsMessage").textContent =
+            error.message;
+    }
+});

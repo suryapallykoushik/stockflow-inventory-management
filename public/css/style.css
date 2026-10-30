@@ -256,3 +256,29 @@
         grid-template-columns: 1fr;
     }
 }
+#settingsForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 350px;
+}
+
+#settingsForm input {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    background: white;
+    color: #222;
+}
+
+#settingsForm button {
+    padding: 12px;
+    cursor: pointer;
+}
+
+#settingsMessage {
+    margin-top: 10px;
+}
