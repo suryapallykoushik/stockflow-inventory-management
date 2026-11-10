@@ -1,233 +1,162 @@
 
-// ========================================
-// STOCKFLOW - FRONTEND APPLICATION
-// ========================================
+let products = [];
+let defaultLowStockThreshold = 5;
 
-let defaultLowStockThreshold = 10;
-
-let stockQuantityChart = null;
-let stockDistributionChart = null;
-
-let allProducts = [];
-
-const getElement = (id) => document.getElementById(id);
-
-// ========================================
-// API RESPONSE HELPER
-// ========================================
+const $ = (id) => document.getElementById(id);
 
 async function readResponse(response) {
     const text = await response.text();
 
-    let data = {};
-
-    if (text) {
-        try {
-            data = JSON.parse(text);
-        } catch {
-            throw new Error("The server returned an invalid response.");
-        }
+    let data;
+    try {
+        data = text ? JSON.parse(text) : {};
+    } catch {
+        throw new Error("Invalid server response.");
     }
 
     if (!response.ok) {
-        throw new Error(data.message || "Something went wrong.");
+        throw new Error(data.message || data.error || "Something went wrong.");
     }
 
     return data;
 }
 
-// ========================================
-// AUTHENTICATION TABS
-// ========================================
+function showMessage(id, message, success = false) {
+    const element = $(id);
+    element.textContent = message;
+    element.className = success ? "message success" : "message error";
+}
+
+function clearMessages() {
+    ["loginMessage", "registerMessage", "productMessage", "settingsMessage"]
+        .forEach(id => {
+            if ($(id)) $(id).textContent = "";
+        });
+}
 
 function showLogin() {
-    getElement("loginForm").classList.remove("hidden");
-    getElement("registerForm").classList.add("hidden");
-
-    getElement("loginTab").classList.add("active");
-    getElement("registerTab").classList.remove("active");
-
-    getElement("loginMessage").textContent = "";
-    getElement("registerMessage").textContent = "";
+    $("loginForm").classList.remove("hidden");
+    $("registerForm").classList.add("hidden");
+    $("loginTab").classList.add("active");
+    $("registerTab").classList.remove("active");
+    clearMessages();
 }
 
 function showRegister() {
-    getElement("registerForm").classList.remove("hidden");
-    getElement("loginForm").classList.add("hidden");
-
-    getElement("registerTab").classList.add("active");
-    getElement("loginTab").classList.remove("active");
-
-    getElement("loginMessage").textContent = "";
-    getElement("registerMessage").textContent = "";
+    $("registerForm").classList.remove("hidden");
+    $("loginForm").classList.add("hidden");
+    $("registerTab").classList.add("active");
+    $("loginTab").classList.remove("active");
+    clearMessages();
 }
 
-getElement("loginTab").addEventListener("click", showLogin);
-getElement("registerTab").addEventListener("click", showRegister);
+$("loginTab").addEventListener("click", showLogin);
+$("registerTab").addEventListener("click", showRegister);
 
-// ========================================
-// SHOW DASHBOARD
-// ========================================
-
-async function showDashboard() {
-    getElement("authSection").classList.add("hidden");
-    getElement("dashboardSection").classList.remove("hidden");
-
-    showSection("dashboardView");
-
-    await loadCurrentUser();
-    await loadSettings();
-    await loadProducts();
-    await loadDashboard();
-}
-
-// ========================================
-// CURRENT USER
-// ========================================
-
-async function loadCurrentUser() {
-    try {
-        const response = await fetch("/api/auth/me", {
-            credentials: "include"
-        });
-
-        const data = await readResponse(response);
-
-        const user = data.user || data;
-
-        if (user.email) {
-            getElement("userEmail").textContent = user.email;
-            getElement("userEmail").title = user.email;
-        }
-    } catch (error) {
-        console.error("Unable to load user details:", error);
-    }
-}
-
-// ========================================
-// LOGIN
-// ========================================
-
-getElement("loginForm").addEventListener("submit", async function(event) {
+// Registration
+$("registerForm").addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const message = getElement("loginMessage");
-    const submitButton = this.querySelector('button[type="submit"]');
+    const organizationName = $("registerOrganization").value.trim();
+    const email = $("registerEmail").value.trim();
+    const password = $("registerPassword").value;
+    const confirmPassword = $("confirmPassword").value;
 
-    message.style.color = "#778399";
-    message.textContent = "Signing in...";
-
-    submitButton.disabled = true;
-
-    try {
-        const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                email: getElement("loginEmail").value.trim(),
-                password: getElement("loginPassword").value
-            })
-        });
-
-        await readResponse(response);
-
-        this.reset();
-        message.textContent = "";
-
-        await showDashboard();
-
-    } catch (error) {
-        message.style.color = "#dc4444";
-        message.textContent = error.message;
-    } finally {
-        submitButton.disabled = false;
+    if (password !== confirmPassword) {
+        showMessage("registerMessage", "Passwords do not match.");
+        return;
     }
-});
-
-// ========================================
-// REGISTRATION
-// ========================================
-
-getElement("registerForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const message = getElement("registerMessage");
-    const submitButton = this.querySelector('button[type="submit"]');
-
-    message.style.color = "#778399";
-    message.textContent = "Creating your account...";
-
-    submitButton.disabled = true;
 
     try {
         const response = await fetch("/api/auth/register", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({
-                organizationName: getElement("registerOrganization").value.trim(),
-                email: getElement("registerEmail").value.trim(),
-                password: getElement("registerPassword").value
+                organizationName,
+                email,
+                password
             })
         });
 
         await readResponse(response);
 
-        this.reset();
+        $("registerForm").reset();
         showLogin();
-
-        getElement("loginMessage").style.color = "#15976b";
-        getElement("loginMessage").textContent =
-            "Account created successfully. Please log in.";
+        showMessage("loginMessage", "Registration successful. Please log in.", true);
 
     } catch (error) {
-        message.style.color = "#dc4444";
-        message.textContent = error.message;
-    } finally {
-        submitButton.disabled = false;
+        showMessage("registerMessage", error.message);
     }
 });
 
-// ========================================
-// LOGOUT
-// ========================================
+// Login
+$("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-getElement("logoutBtn").addEventListener("click", async function() {
+    const email = $("loginEmail").value.trim();
+    const password = $("loginPassword").value;
+
     try {
-        const response = await fetch("/api/auth/logout", {
+        const response = await fetch("/api/auth/login", {
             method: "POST",
-            credentials: "include"
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email, password })
         });
 
         await readResponse(response);
 
-        getElement("dashboardSection").classList.add("hidden");
-        getElement("authSection").classList.remove("hidden");
-
-        getElement("loginForm").reset();
-        getElement("registerForm").reset();
-        getElement("productForm").reset();
-
-        allProducts = [];
-
-        getElement("productSearch").value = "";
-
-        resetProductForm();
-        showLogin();
+        $("loginForm").reset();
+        await showDashboard();
 
     } catch (error) {
-        alert(error.message);
+        showMessage("loginMessage", error.message);
     }
 });
 
-// ========================================
-// CHECK EXISTING SESSION
-// ========================================
+// Logout
+$("logoutBtn").addEventListener("click", async () => {
+    try {
+        await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+
+    products = [];
+    $("dashboardSection").classList.add("hidden");
+    $("authSection").classList.remove("hidden");
+    showLogin();
+});
+
+// Session and application display
+async function showDashboard() {
+    $("authSection").classList.add("hidden");
+    $("dashboardSection").classList.remove("hidden");
+
+    try {
+        await loadCurrentUser();
+        await loadSettings();
+        await loadProducts();
+        await loadDashboard();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function loadCurrentUser() {
+    const response = await fetch("/api/auth/me", {
+        credentials: "include"
+    });
+
+    const data = await readResponse(response);
+    const user = data.user || data;
+
+    $("userEmail").textContent = user.email || "";
+}
 
 async function checkSession() {
     try {
@@ -238,36 +167,35 @@ async function checkSession() {
         if (response.ok) {
             await showDashboard();
         } else {
-            getElement("authSection").classList.remove("hidden");
-            getElement("dashboardSection").classList.add("hidden");
+            $("authSection").classList.remove("hidden");
+            $("dashboardSection").classList.add("hidden");
             showLogin();
         }
-    } catch (error) {
-        console.error("Session check failed:", error);
-        getElement("authSection").classList.remove("hidden");
-        getElement("dashboardSection").classList.add("hidden");
+    } catch {
+        $("authSection").classList.remove("hidden");
+        $("dashboardSection").classList.add("hidden");
+        showLogin();
     }
 }
 
-// ========================================
-// SIDEBAR NAVIGATION
-// ========================================
+// Navigation
+document.querySelectorAll(".nav-btn").forEach(button => {
+    button.addEventListener("click", () => {
+        showSection(button.dataset.section);
+    });
+});
 
 function showSection(sectionId) {
-    document.querySelectorAll(".content-view").forEach(section => {
+    document.querySelectorAll(".content-section").forEach(section => {
         section.classList.add("hidden");
     });
 
-    const selectedSection = getElement(sectionId);
+    $(sectionId).classList.remove("hidden");
 
-    if (selectedSection) {
-        selectedSection.classList.remove("hidden");
-    }
-
-    document.querySelectorAll(".nav-link").forEach(link => {
-        link.classList.toggle(
+    document.querySelectorAll(".nav-btn").forEach(button => {
+        button.classList.toggle(
             "active",
-            link.dataset.section === sectionId
+            button.dataset.section === sectionId
         );
     });
 
@@ -277,712 +205,282 @@ function showSection(sectionId) {
         settingsView: "Settings"
     };
 
-    getElement("pageTitle").textContent =
-        titles[sectionId] || "StockFlow";
-
-    if (sectionId === "dashboardView") {
-        updateInventoryCharts(allProducts);
-    }
+    $("pageTitle").textContent = titles[sectionId] || "StockFlow";
 }
 
-document.querySelectorAll(".nav-link").forEach(link => {
-    link.addEventListener("click", function() {
-        showSection(this.dataset.section);
-    });
-});
-
-// ========================================
-// DASHBOARD
-// ========================================
-
-async function loadDashboard() {
-    const lowStockList = getElement("lowStockList");
-    const outOfStockList = getElement("outOfStockList");
-
-    lowStockList.textContent = "Loading inventory...";
-    outOfStockList.textContent = "Loading inventory...";
-
-    try {
-        const response = await fetch("/api/dashboard", {
-            credentials: "include"
-        });
-
-        const data = await readResponse(response);
-
-        const summary = data.summary || data;
-
-        getElement("totalProducts").textContent =
-            summary.totalProducts ?? 0;
-
-        getElement("totalUnits").textContent =
-            summary.totalUnits ?? 0;
-
-        getElement("lowStockCount").textContent =
-            summary.lowStockCount ?? 0;
-
-        const lowStockProducts = data.lowStockProducts || [];
-        const outOfStockProducts = data.outOfStockProducts || [];
-
-        getElement("outOfStockCount").textContent =
-            summary.outOfStockCount ?? outOfStockProducts.length;
-
-        renderLowStockProducts(lowStockProducts);
-        renderOutOfStockProducts(outOfStockProducts);
-
-        updateInventoryCharts(allProducts);
-
-    } catch (error) {
-        console.error("Dashboard error:", error);
-
-        lowStockList.textContent = error.message;
-        outOfStockList.textContent = error.message;
-    }
-}
-
-// ========================================
-// LOW STOCK DISPLAY
-// ========================================
-
-function renderLowStockProducts(products) {
-    const container = getElement("lowStockList");
-    container.innerHTML = "";
-
-    if (!products.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "All products are sufficiently stocked.";
-        container.appendChild(empty);
-        return;
-    }
-
-    products.forEach(product => {
-        const item = document.createElement("div");
-        item.className = "low-stock-item";
-
-        const details = document.createElement("div");
-
-        const name = document.createElement("strong");
-        name.textContent = product.name;
-
-        const info = document.createElement("p");
-
-        const threshold =
-            product.low_stock_threshold ??
-            product.lowStockThreshold ??
-            "Default";
-
-        info.textContent =
-            `Product Code: ${product.sku} | Alert Level: ${threshold}`;
-
-        details.append(name, info);
-
-        const quantity = document.createElement("span");
-        quantity.className = "low-stock-quantity";
-        quantity.textContent = `${product.quantity} units remaining`;
-
-        item.append(details, quantity);
-        container.appendChild(item);
-    });
-}
-
-// ========================================
-// OUT OF STOCK DISPLAY
-// ========================================
-
-function renderOutOfStockProducts(products) {
-    const container = getElement("outOfStockList");
-    container.innerHTML = "";
-
-    if (!products.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "No products are currently out of stock.";
-        container.appendChild(empty);
-        return;
-    }
-
-    products.forEach(product => {
-        const item = document.createElement("div");
-        item.className = "low-stock-item";
-
-        const details = document.createElement("div");
-
-        const name = document.createElement("strong");
-        name.textContent = product.name;
-
-        const info = document.createElement("p");
-        info.textContent = `Product Code: ${product.sku}`;
-
-        details.append(name, info);
-
-        const quantity = document.createElement("span");
-        quantity.className = "low-stock-quantity";
-        quantity.textContent = "Out of stock";
-
-        item.append(details, quantity);
-        container.appendChild(item);
-    });
-}
-
-// ========================================
-// PRODUCT MANAGEMENT
-// ========================================
-
-const productForm = getElement("productForm");
-const productMessage = getElement("productMessage");
-
-// ========================================
-// LOAD PRODUCTS
-// ========================================
-
-async function loadProducts() {
-    const productList = getElement("productList");
-    productList.textContent = "Loading products...";
-
-    try {
-        const response = await fetch("/api/products", {
-            credentials: "include"
-        });
-
-        const data = await readResponse(response);
-
-        allProducts = Array.isArray(data)
-            ? data
-            : data.products || [];
-
-        renderProducts(allProducts);
-
-    } catch (error) {
-        console.error("Products error:", error);
-        productList.textContent = error.message;
-    }
-}
-
-// ========================================
-// PRODUCT SEARCH
-// ========================================
-
-function searchProducts() {
-    const searchTerm = getElement("productSearch")
-        .value
-        .trim()
-        .toLowerCase();
-
-    const filteredProducts = allProducts.filter(product => {
-        const name = String(product.name || "").toLowerCase();
-        const sku = String(product.sku || "").toLowerCase();
-
-        return name.includes(searchTerm) || sku.includes(searchTerm);
-    });
-
-    renderProducts(filteredProducts);
-}
-
-getElement("productSearch").addEventListener("input", searchProducts);
-
-// ========================================
-// STOCK STATUS
-// ========================================
-
+// Product stock status
 function getProductStockStatus(product) {
-    const threshold =
-        product.low_stock_threshold ?? defaultLowStockThreshold;
-
     const quantity = Number(product.quantity);
+    const threshold = Number(
+        product.low_stock_threshold ?? defaultLowStockThreshold
+    );
 
-    if (quantity <= 0) {
-        return "Out of Stock";
-    }
-
-    if (quantity <= Number(threshold)) {
+    if (quantity <= threshold) {
         return "Low Stock";
     }
 
     return "In Stock";
 }
 
-// ========================================
-// INVENTORY ANALYTICS CHARTS
-// ========================================
-
-function updateInventoryCharts(products) {
-    const quantityCanvas = getElement("stockQuantityChart");
-    const distributionCanvas = getElement("stockDistributionChart");
-
-    if (!quantityCanvas || !distributionCanvas) {
-        return;
-    }
-
-    if (typeof Chart === "undefined") {
-        console.warn("Chart.js is not loaded.");
-        return;
-    }
-
-    const labels = [
-        "In Stock",
-        "Low Stock",
-        "Out of Stock"
-    ];
-
-    const quantities = {
-        "In Stock": 0,
-        "Low Stock": 0,
-        "Out of Stock": 0
-    };
-
-    const productCounts = {
-        "In Stock": 0,
-        "Low Stock": 0,
-        "Out of Stock": 0
-    };
-
-    products.forEach(product => {
-        const status = getProductStockStatus(product);
-        const quantity = Number(product.quantity) || 0;
-
-        quantities[status] += quantity;
-        productCounts[status] += 1;
-    });
-
-    const quantityData = labels.map(label => quantities[label]);
-    const distributionData = labels.map(label => productCounts[label]);
-
-    const chartColors = [
-        "#15976b",
-        "#d97706",
-        "#dc4444"
-    ];
-
-    const dataLabelsPlugin =
-        typeof ChartDataLabels !== "undefined"
-            ? [ChartDataLabels]
-            : [];
-
-    // BAR CHART
-
-    if (stockQuantityChart) {
-        stockQuantityChart.data.labels = labels;
-        stockQuantityChart.data.datasets[0].data = quantityData;
-        stockQuantityChart.update();
-
-    } else {
-        stockQuantityChart = new Chart(quantityCanvas, {
-            type: "bar",
-
-            data: {
-                labels,
-                datasets: [{
-                    label: "Stock Units",
-                    data: quantityData,
-                    backgroundColor: chartColors,
-                    borderRadius: 8,
-                    maxBarThickness: 55
-                }]
-            },
-
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-
-                // Extra space at the top prevents quantity labels
-                // from being cut off by the chart boundary.
-                layout: {
-                    padding: {
-                        top: 30,
-                        right: 12,
-                        left: 8,
-                        bottom: 4
-                    }
-                },
-
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-
-                    datalabels: {
-                        display: true,
-                        anchor: "end",
-                        align: "top",
-                        offset: 4,
-                        clip: false,
-                        clamp: false,
-                        color: "#334155",
-                        font: {
-                            weight: "bold",
-                            size: 12
-                        },
-                        formatter: value => value
-                    },
-
-                    tooltip: {
-                        callbacks: {
-                            label: context => `${context.parsed.y} units`
-                        }
-                    }
-                },
-
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grace: "20%",
-                        ticks: {
-                            precision: 0
-                        },
-                        title: {
-                            display: true,
-                            text: "Stock Units"
-                        }
-                    },
-
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            },
-
-            plugins: dataLabelsPlugin
-        });
-    }
-
-    // PIE CHART
-
-    if (stockDistributionChart) {
-        stockDistributionChart.data.labels = labels;
-        stockDistributionChart.data.datasets[0].data = distributionData;
-        stockDistributionChart.update();
-
-    } else {
-        stockDistributionChart = new Chart(distributionCanvas, {
-            type: "pie",
-
-            data: {
-                labels,
-                datasets: [{
-                    label: "Products",
-                    data: distributionData,
-                    backgroundColor: chartColors,
-                    borderWidth: 2,
-                    borderColor: "#ffffff"
-                }]
-            },
-
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: "bottom"
-                    },
-
-                    tooltip: {
-                        callbacks: {
-                            label: context =>
-                                `${context.label}: ${context.parsed} products`
-                        }
-                    }
-                }
-            }
-        });
-    }
+function getEffectiveThreshold(product) {
+    return product.low_stock_threshold === null ||
+        product.low_stock_threshold === undefined ||
+        product.low_stock_threshold === ""
+        ? defaultLowStockThreshold
+        : Number(product.low_stock_threshold);
 }
 
-// ========================================
-// RENDER PRODUCT TABLE
-// ========================================
+// Dashboard
+async function loadDashboard() {
+    const response = await fetch("/api/dashboard", {
+        credentials: "include"
+    });
 
-function renderProducts(products) {
-    const container = getElement("productList");
-    container.innerHTML = "";
+    const data = await readResponse(response);
+    const summary = data.summary || data;
 
-    // Charts always use all products, not filtered search results.
-    updateInventoryCharts(allProducts);
+    $("totalProducts").textContent =
+        summary.totalProducts ?? summary.total_products ?? products.length;
 
-    if (!products.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
+    $("totalUnits").textContent =
+        summary.totalUnits ?? summary.totalQuantity ??
+        summary.total_quantity ??
+        products.reduce((total, product) => total + Number(product.quantity || 0), 0);
 
-        empty.textContent = allProducts.length === 0
-            ? "No products added yet. Add your first product above."
-            : "No products found. Try another product name or product code.";
+    const lowStockProducts = data.lowStockProducts || data.low_stock_products ||
+        products.filter(product =>
+            Number(product.quantity) <= getEffectiveThreshold(product)
+        );
 
-        container.appendChild(empty);
+    $("lowStockCount").textContent =
+        summary.lowStockCount ?? summary.lowStockItems ??
+        summary.low_stock_count ?? lowStockProducts.length;
+
+    renderLowStockProducts(lowStockProducts);
+}
+
+function renderLowStockProducts(items) {
+    const tbody = $("lowStockList");
+    tbody.innerHTML = "";
+
+    if (!items.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 4;
+        cell.textContent = "No low-stock products";
+        row.appendChild(cell);
+        tbody.appendChild(row);
         return;
     }
 
-    const table = document.createElement("table");
-    table.className = "product-table";
-
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-
-    [
-        "PRODUCT",
-        "PRODUCT CODE",
-        "QUANTITY",
-        "STOCK STATUS",
-        "SALE PRICE",
-        "ACTIONS"
-    ].forEach(label => {
-        const th = document.createElement("th");
-        th.textContent = label;
-        headerRow.appendChild(th);
-    });
-
-    thead.appendChild(headerRow);
-
-    const tbody = document.createElement("tbody");
-
-    products.forEach(product => {
+    items.forEach(product => {
         const row = document.createElement("tr");
 
-        const status = getProductStockStatus(product);
+        [
+            product.name,
+            product.sku,
+            product.quantity,
+            getEffectiveThreshold(product)
+        ].forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = value ?? "";
+            row.appendChild(cell);
+        });
 
-        let statusClass = "stock-normal";
+        tbody.appendChild(row);
+    });
+}
 
-        if (status === "Out of Stock") {
-            statusClass = "stock-out";
-        } else if (status === "Low Stock") {
-            statusClass = "stock-low";
-        }
+// Load products
+async function loadProducts() {
+    const response = await fetch("/api/products", {
+        credentials: "include"
+    });
 
-        // Product name
-        const nameCell = document.createElement("td");
-        const name = document.createElement("div");
-        name.className = "product-name";
-        name.textContent = product.name;
-        nameCell.appendChild(name);
+    const data = await readResponse(response);
 
-        // Product code
-        const skuCell = document.createElement("td");
-        const sku = document.createElement("span");
-        sku.className = "product-sku";
-        sku.textContent = product.sku;
-        skuCell.appendChild(sku);
+    products = Array.isArray(data)
+        ? data
+        : (data.products || []);
 
-        // Quantity
-        const quantityCell = document.createElement("td");
-        quantityCell.textContent = Number(product.quantity);
+    renderProducts(products);
+}
 
-        // Stock status
-        const statusCell = document.createElement("td");
-        const badge = document.createElement("span");
-        badge.className = `stock-badge ${statusClass}`;
-        badge.textContent = status;
-        statusCell.appendChild(badge);
+// Display products
+function renderProducts(items) {
+    const tbody = $("productList");
+    tbody.innerHTML = "";
 
-        // Sale price
-        const priceCell = document.createElement("td");
-        const price = Number(product.selling_price);
+    if (!items.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 6;
+        cell.textContent = "No products found";
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+    }
 
-        priceCell.textContent =
-            product.selling_price === null ||
-            product.selling_price === undefined ||
-            product.selling_price === ""
-                ? "—"
-                : `₹${price.toFixed(2)}`;
+    items.forEach(product => {
+        const row = document.createElement("tr");
 
-        // Actions
-        const actionCell = document.createElement("td");
-        const actions = document.createElement("div");
-        actions.className = "action-buttons";
+        const values = [
+            product.name,
+            product.sku,
+            product.quantity,
+            getProductStockStatus(product),
+            product.selling_price ?? "-"
+        ];
+
+        values.forEach((value, index) => {
+            const cell = document.createElement("td");
+            cell.textContent = value ?? "";
+
+            if (index === 3) {
+                cell.className = value === "Low Stock"
+                    ? "low-stock"
+                    : "in-stock";
+            }
+
+            row.appendChild(cell);
+        });
+
+        const actions = document.createElement("td");
 
         const editButton = document.createElement("button");
         editButton.type = "button";
-        editButton.className = "edit-btn";
         editButton.textContent = "Edit";
         editButton.addEventListener("click", () => editProduct(product));
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
-        deleteButton.className = "delete-btn";
         deleteButton.textContent = "Delete";
-        deleteButton.addEventListener(
-            "click",
-            () => deleteProduct(product.id)
-        );
+        deleteButton.className = "delete-btn";
+        deleteButton.addEventListener("click", () => deleteProduct(product.id));
 
         actions.append(editButton, deleteButton);
-        actionCell.appendChild(actions);
-
-        row.append(
-            nameCell,
-            skuCell,
-            quantityCell,
-            statusCell,
-            priceCell,
-            actionCell
-        );
+        row.appendChild(actions);
 
         tbody.appendChild(row);
     });
-
-    table.append(thead, tbody);
-    container.appendChild(table);
 }
 
-// ========================================
-// ADD OR UPDATE PRODUCT
-// ========================================
+// Search products
+$("productSearch").addEventListener("input", (event) => {
+    const search = event.target.value.trim().toLowerCase();
 
-productForm.addEventListener("submit", async function(event) {
+    const filtered = products.filter(product =>
+        String(product.name || "").toLowerCase().includes(search) ||
+        String(product.sku || "").toLowerCase().includes(search)
+    );
+
+    renderProducts(filtered);
+});
+
+// Add or update product
+$("productForm").addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const productId = getElement("productId").value;
-    const thresholdValue =
-        getElement("productLowStockThreshold").value.trim();
+    const id = $("productId").value;
 
-    const costValue = getElement("productCost").value.trim();
-    const sellingValue = getElement("productSelling").value.trim();
+    const quantity = Number($("productQuantity").value);
+    const costPrice = $("productCost").value;
+    const sellingPrice = $("productSelling").value;
+    const threshold = $("productLowStockThreshold").value;
 
-    const product = {
-        name: getElement("productName").value.trim(),
-        sku: getElement("productSku").value.trim(),
-        quantity: Number(getElement("productQuantity").value),
+    if (!Number.isInteger(quantity) || quantity < 0) {
+        showMessage("productMessage", "Quantity must be a non-negative whole number.");
+        return;
+    }
 
-        cost_price: costValue === ""
-            ? null
-            : Number(costValue),
+    if (threshold !== "" &&
+        (!Number.isInteger(Number(threshold)) || Number(threshold) < 0)) {
+        showMessage("productMessage", "Low-stock threshold must be a non-negative whole number.");
+        return;
+    }
 
-        selling_price: sellingValue === ""
-            ? null
-            : Number(sellingValue),
+    if (
+        (costPrice !== "" && (!Number.isFinite(Number(costPrice)) || Number(costPrice) < 0)) ||
+        (sellingPrice !== "" && (!Number.isFinite(Number(sellingPrice)) || Number(sellingPrice) < 0))
+    ) {
+        showMessage("productMessage", "Prices must be non-negative numbers.");
+        return;
+    }
 
-        description: getElement("productDescription").value.trim(),
-
-        low_stock_threshold: thresholdValue === ""
-            ? null
-            : Number(thresholdValue)
+    const payload = {
+        name: $("productName").value.trim(),
+        sku: $("productSku").value.trim(),
+        quantity,
+        cost_price: costPrice === "" ? null : Number(costPrice),
+        selling_price: sellingPrice === "" ? null : Number(sellingPrice),
+        low_stock_threshold: threshold === "" ? null : Number(threshold),
+        description: $("productDescription").value.trim() || null
     };
 
-    if (
-        !product.name ||
-        !product.sku ||
-        !Number.isInteger(product.quantity) ||
-        product.quantity < 0
-    ) {
-        productMessage.style.color = "#dc4444";
-        productMessage.textContent =
-            "Please enter a product name, product code, and valid non-negative whole quantity.";
+    if (!payload.name || !payload.sku) {
+        showMessage("productMessage", "Product name and SKU are required.");
         return;
     }
-
-    if (
-        (product.low_stock_threshold !== null &&
-            (!Number.isInteger(product.low_stock_threshold) ||
-             product.low_stock_threshold < 0)) ||
-
-        (product.cost_price !== null &&
-            (!Number.isFinite(product.cost_price) ||
-             product.cost_price < 0)) ||
-
-        (product.selling_price !== null &&
-            (!Number.isFinite(product.selling_price) ||
-             product.selling_price < 0))
-    ) {
-        productMessage.style.color = "#dc4444";
-        productMessage.textContent =
-            "Please enter valid non-negative prices and stock alert level.";
-        return;
-    }
-
-    const url = productId
-        ? `/api/products/${productId}`
-        : "/api/products";
-
-    const submitButton = getElement("productSubmitBtn");
-    submitButton.disabled = true;
 
     try {
-        const response = await fetch(url, {
-            method: productId ? "PUT" : "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(product)
-        });
+        const response = await fetch(
+            id ? `/api/products/${id}` : "/api/products",
+            {
+                method: id ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            }
+        );
 
         await readResponse(response);
 
-        productMessage.style.color = "#15976b";
-        productMessage.textContent = productId
-            ? "Product updated successfully."
-            : "Product added successfully.";
-
         resetProductForm();
-
-        await loadSettings();
         await loadProducts();
         await loadDashboard();
 
+        showMessage(
+            "productMessage",
+            id ? "Product updated successfully." : "Product added successfully.",
+            true
+        );
+
     } catch (error) {
-        productMessage.style.color = "#dc4444";
-        productMessage.textContent = error.message;
-    } finally {
-        submitButton.disabled = false;
+        showMessage("productMessage", error.message);
     }
 });
 
-// ========================================
-// EDIT PRODUCT
-// ========================================
-
+// Edit product
 function editProduct(product) {
-    getElement("productId").value = product.id;
-    getElement("productName").value = product.name || "";
-    getElement("productSku").value = product.sku || "";
-    getElement("productQuantity").value = product.quantity ?? "";
-
-    getElement("productCost").value =
-        product.cost_price ?? "";
-
-    getElement("productSelling").value =
-        product.selling_price ?? "";
-
-    getElement("productLowStockThreshold").value =
+    $("productId").value = product.id;
+    $("productName").value = product.name || "";
+    $("productSku").value = product.sku || "";
+    $("productQuantity").value = product.quantity ?? 0;
+    $("productCost").value = product.cost_price ?? "";
+    $("productSelling").value = product.selling_price ?? "";
+    $("productLowStockThreshold").value =
         product.low_stock_threshold ?? "";
+    $("productDescription").value = product.description || "";
 
-    getElement("productDescription").value =
-        product.description || "";
+    $("productFormTitle").textContent = "Edit Product";
+    $("productSubmitBtn").textContent = "Update Product";
+    $("cancelEditBtn").classList.remove("hidden");
 
-    getElement("productSubmitBtn").textContent = "Update Product";
-    getElement("cancelEditBtn").classList.remove("hidden");
-
-    productMessage.style.color = "#3563e9";
-    productMessage.textContent = "Editing product details.";
-
-    productForm.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
+    $("productForm").scrollIntoView({ behavior: "smooth" });
 }
 
-// ========================================
-// RESET PRODUCT FORM
-// ========================================
-
+// Reset product form
 function resetProductForm() {
-    productForm.reset();
-
-    getElement("productId").value = "";
-    getElement("productSubmitBtn").textContent = "Add Product";
-    getElement("cancelEditBtn").classList.add("hidden");
+    $("productForm").reset();
+    $("productId").value = "";
+    $("productFormTitle").textContent = "Add Product";
+    $("productSubmitBtn").textContent = "Add Product";
+    $("cancelEditBtn").classList.add("hidden");
 }
 
-getElement("cancelEditBtn").addEventListener("click", function() {
-    resetProductForm();
-    productMessage.textContent = "";
-});
+$("cancelEditBtn").addEventListener("click", resetProductForm);
 
-// ========================================
-// DELETE PRODUCT
-// ========================================
-
+// Delete product
 async function deleteProduct(id) {
     if (!confirm("Are you sure you want to delete this product?")) {
         return;
@@ -996,99 +494,67 @@ async function deleteProduct(id) {
 
         await readResponse(response);
 
-        productMessage.style.color = "#15976b";
-        productMessage.textContent = "Product deleted successfully.";
-
         await loadProducts();
         await loadDashboard();
 
     } catch (error) {
-        productMessage.style.color = "#dc4444";
-        productMessage.textContent = error.message;
+        alert(error.message);
     }
 }
 
-// ========================================
-// INVENTORY SETTINGS
-// ========================================
-
+// Settings
 async function loadSettings() {
-    try {
-        const response = await fetch("/api/settings", {
-            credentials: "include"
-        });
+    const response = await fetch("/api/settings", {
+        credentials: "include"
+    });
 
-        const data = await readResponse(response);
+    const data = await readResponse(response);
 
-        defaultLowStockThreshold =
-            Number(data.defaultLowStockThreshold ?? 10);
-
-        getElement("lowStockThreshold").value =
-            defaultLowStockThreshold;
-
-    } catch (error) {
-        console.error("Settings load error:", error);
-
-        getElement("settingsMessage").style.color = "#dc4444";
-        getElement("settingsMessage").textContent = error.message;
-    }
-}
-
-// ========================================
-// SAVE SETTINGS
-// ========================================
-
-getElement("settingsForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const threshold = Number(
-        getElement("lowStockThreshold").value
+    defaultLowStockThreshold = Number(
+        data.defaultLowStockThreshold ??
+        data.default_low_stock_threshold ??
+        5
     );
 
+    $("lowStockThreshold").value = defaultLowStockThreshold;
+}
+
+$("settingsForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const threshold = Number($("lowStockThreshold").value);
+
     if (!Number.isInteger(threshold) || threshold < 0) {
-        getElement("settingsMessage").style.color = "#dc4444";
-        getElement("settingsMessage").textContent =
-            "Please enter a valid non-negative whole number.";
+        showMessage(
+            "settingsMessage",
+            "Threshold must be a non-negative whole number."
+        );
         return;
     }
-
-    const submitButton = this.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
 
     try {
         const response = await fetch("/api/settings", {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({
                 defaultLowStockThreshold: threshold
             })
         });
 
-        const data = await readResponse(response);
+        await readResponse(response);
 
-        defaultLowStockThreshold =
-            Number(data.defaultLowStockThreshold ?? threshold);
-
-        getElement("settingsMessage").style.color = "#15976b";
-        getElement("settingsMessage").textContent =
-            "Settings saved successfully!";
+        defaultLowStockThreshold = threshold;
 
         await loadProducts();
         await loadDashboard();
 
+        showMessage("settingsMessage", "Settings saved successfully.", true);
+
     } catch (error) {
-        getElement("settingsMessage").style.color = "#dc4444";
-        getElement("settingsMessage").textContent = error.message;
-    } finally {
-        submitButton.disabled = false;
+        showMessage("settingsMessage", error.message);
     }
 });
 
-// ========================================
-// START APPLICATION
-// ========================================
-
+// Start application
 checkSession();
